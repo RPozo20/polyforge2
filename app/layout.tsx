@@ -1,0 +1,64 @@
+// app/layout.tsx
+import type { Metadata } from "next";
+import "./globals.css";
+import { Navbar } from "@/components/layout/Navbar";
+import { Footer } from "@/components/layout/Footer";
+import { CartDrawer } from "@/components/layout/CartDrawer";
+
+export const metadata: Metadata = {
+  title: {
+    default: "POLYFORGE — Digital Asset Commerce Platform",
+    template: "%s | POLYFORGE",
+  },
+  description:
+    "Discover, buy, and sell premium AAA-quality 3D characters and digital assets. The world's most advanced marketplace for game developers, VFX studios, and 3D artists.",
+  keywords: [
+    "3D characters",
+    "game assets",
+    "AAA characters",
+    "digital assets marketplace",
+    "3D models",
+    "character rigging",
+    "Unreal Engine assets",
+    "Unity assets",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "https://dacp.io",
+    siteName: "POLYFORGE",
+    title: "POLYFORGE — Digital Asset Commerce Platform",
+    description:
+      "The world's most advanced marketplace for premium 3D characters and digital assets.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "POLYFORGE — Digital Asset Commerce Platform",
+    description: "Discover premium AAA-quality 3D characters and digital assets.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en" className="dark">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+      </head>
+      <body>
+        <Navbar />
+        <CartDrawer />
+        <main>{children}</main>
+        <Footer />
+      </body>
+    </html>
+  );
+}
