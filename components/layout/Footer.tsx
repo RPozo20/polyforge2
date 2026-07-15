@@ -9,10 +9,8 @@ const footerLinks = {
     { label: "Creators", href: "/creators" },
     { label: "Studio", href: "/studio" },
     { label: "Pricing", href: "/pricing" },
-    { label: "Enterprise", href: "/enterprise" },
   ],
   Creators: [
-    { label: "Sell Assets", href: "/sell" },
     { label: "Creator Program", href: "/creator-program" },
     { label: "Earnings", href: "/earnings" },
     { label: "Documentation", href: "/docs" },
@@ -20,8 +18,6 @@ const footerLinks = {
   ],
   Company: [
     { label: "About", href: "/about" },
-    { label: "Careers", href: "/careers" },
-    { label: "Press", href: "/press" },
     { label: "Contact", href: "/contact" },
     { label: "Status", href: "/status" },
   ],
@@ -132,7 +128,7 @@ export function Footer() {
       <div className="border-t border-[var(--border-subtle)]">
         <div className="container-xl py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-xs text-[var(--text-muted)]">
-            © 2025 POLYFORGE. All rights reserved.
+            © 2026 POLYFORGE. All rights reserved.
           </p>
           <div className="flex items-center gap-4">
             <span className="text-xs text-[var(--text-muted)]">

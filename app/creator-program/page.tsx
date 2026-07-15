@@ -42,12 +42,14 @@ export default function CreatorProgramPage() {
             Grow With Us.<br />
             <span className="gradient-text">Earn More as You Rise.</span>
           </h1>
-          <p className="text-xl text-[var(--text-secondary)] max-w-2xl mx-auto mb-10">
+          <p className="text-xl text-[var(--text-secondary)] max-w-3xl mx-auto mb-16">
             The POLYFORGE Creator Program rewards your growth with higher revenue share, promotional boosts, and exclusive benefits.
           </p>
-          <Link href="/register" className="btn btn-primary btn-lg">
-            Join the Program <ArrowRight className="w-4 h-4" />
-          </Link>
+          <div className="mb-24">
+            <Link href="/register" className="btn btn-primary btn-lg px-8">
+              Join the Program <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
       </section>
 

@@ -14,15 +14,17 @@ import { Avatar } from "@/components/ui/Avatar";
 import { AssetCard } from "@/components/marketplace/AssetCard";
 
 interface PageProps {
-  params: { username: string };
+  params: Promise<{ username: string }>;
 }
 
 export default function CreatorProfilePage({ params }: PageProps) {
-  const creator = creators.find((c) => c.username === params.username);
+  const { username } = React.use(params);
+  const creator = creators.find((c) => c.username === username);
+  const [following, setFollowing] = useState(false);
+
   if (!creator) notFound();
 
   const creatorAssets = getAssetsByCreator(creator.id);
-  const [following, setFollowing] = useState(false);
 
   return (
     <div className="min-h-screen pt-20" style={{ background: "var(--bg-base)" }}>

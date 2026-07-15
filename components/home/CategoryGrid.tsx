@@ -1,9 +1,11 @@
 // components/home/CategoryGrid.tsx
 import React from "react";
 import Link from "next/link";
+import * as LucideIcons from "lucide-react";
 import { ArrowRight } from "lucide-react";
 import { categories } from "@/lib/mock/categories";
 import { formatNumber } from "@/lib/utils";
+import { PremiumIcon } from "@/components/ui/PremiumIcon";
 
 export function CategoryGrid() {
   const featured = categories.filter((c) => c.featured);
@@ -55,8 +57,13 @@ export function CategoryGrid() {
               />
 
               {/* Icon */}
-              <div className="text-3xl mb-3 group-hover:scale-110 transition-transform duration-300 origin-left">
-                {category.icon}
+              <div className="mb-4 group-hover:scale-110 transition-transform duration-300 origin-left">
+                <PremiumIcon 
+                  icon={(LucideIcons as any)[category.icon] || LucideIcons.HelpCircle} 
+                  color={category.color} 
+                  size="sm" 
+                  glow={false}
+                />
               </div>
 
               {/* Content */}

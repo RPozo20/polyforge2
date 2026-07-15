@@ -65,7 +65,7 @@ export default function EarningsPage() {
           </div>
 
           <div className="text-center mt-12">
-            <Link href="/sell" className="btn btn-primary btn-lg">
+            <Link href="/register" className="btn btn-primary btn-lg">
               Start Earning <ArrowRight className="w-4 h-4" />
             </Link>
           </div>

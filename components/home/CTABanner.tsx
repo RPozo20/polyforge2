@@ -53,7 +53,8 @@ export function CTABanner() {
                 ].map((b) => (
                   <div
                     key={b.label}
-                    className="flex items-start gap-3 p-3 rounded-xl bg-white/3 border border-white/6"
+                    className="flex items-start gap-3 p-3 rounded-xl border"
+                    style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}
                   >
                     <span className="text-violet-400 mt-0.5 flex-shrink-0">{b.icon}</span>
                     <div>
@@ -66,7 +67,7 @@ export function CTABanner() {
 
               <div className="flex flex-wrap gap-3">
                 <Link
-                  href="/sell"
+                  href="/register"
                   id="cta-start-selling"
                   className="btn btn-primary btn-lg group"
                 >

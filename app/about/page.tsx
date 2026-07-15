@@ -86,7 +86,7 @@ export default function AboutPage() {
           <p className="text-[var(--text-secondary)] mb-8">Whether you create or consume, there's a place for you at POLYFORGE.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/marketplace" className="btn btn-primary btn-lg">Browse the Marketplace <ArrowRight className="w-4 h-4" /></Link>
-            <Link href="/sell" className="btn btn-ghost btn-lg">Start Selling</Link>
+            <Link href="/register" className="btn btn-ghost btn-lg">Start Selling</Link>
           </div>
         </div>
       </section>

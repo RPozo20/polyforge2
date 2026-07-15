@@ -78,7 +78,7 @@ export default function PricingPage() {
             <h1 className="display-md text-white mb-4" style={{ fontFamily: "var(--font-display)" }}>
               Simple, Transparent Pricing
             </h1>
-            <p className="text-lg text-[var(--text-secondary)] max-w-xl mx-auto">
+            <p className="text-lg text-[var(--text-secondary)] max-w-2xl mx-auto mb-16">
               Start free. Scale as you grow. No hidden fees, ever.
             </p>
           </div>

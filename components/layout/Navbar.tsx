@@ -254,7 +254,7 @@ export function Navbar() {
               </Link>
             </div>
             <div className="mt-auto text-xs text-[var(--text-muted)]">
-              © 2025 DACP · All rights reserved
+              © 2026 POLYFORGE · All rights reserved
             </div>
           </div>
         </div>

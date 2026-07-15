@@ -17,17 +17,20 @@ import { AssetCard } from "@/components/marketplace/AssetCard";
 import { useCartStore } from "@/lib/store/cart";
 
 interface PageProps {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export default function AssetDetailPage({ params }: PageProps) {
-  const asset = getAssetBySlug(params.slug);
-  if (!asset) notFound();
+  const { slug } = React.use(params);
+  const asset = getAssetBySlug(slug);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [liked, setLiked] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const { addItem, items } = useCartStore();
+
+  if (!asset) notFound();
+
   const inCart = items.some((i) => i.asset.id === asset.id);
 
   const handleAddToCart = () => {
@@ -289,7 +292,7 @@ export default function AssetDetailPage({ params }: PageProps) {
 
               {/* Creator mini card */}
               <Link
-                href={`/creators/${asset.creatorId}`}
+                href={`/marketplace?creator=${encodeURIComponent(asset.creatorName)}`}
                 className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-elevated)] hover:bg-[var(--bg-overlay)] border border-[var(--border-subtle)] transition-all group"
               >
                 <Avatar src={asset.creatorAvatar} name={asset.creatorName} size="md" verified />

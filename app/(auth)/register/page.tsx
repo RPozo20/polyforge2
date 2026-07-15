@@ -2,7 +2,7 @@
 // app/(auth)/register/page.tsx
 import React, { useState } from "react";
 import Link from "next/link";
-import { Sparkles, ArrowRight, CheckCircle, Gamepad2, Palette, Building2 } from "lucide-react";
+import { Sparkles, ArrowRight, CheckCircle, Gamepad2, Palette, Building2, Globe } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 type Role = "buyer" | "creator" | "studio";
@@ -155,6 +155,21 @@ export default function RegisterPage() {
                   {roles.find((r) => r.id === role)?.title}
                 </span>
               </p>
+
+              {/* OAuth */}
+              <button
+                type="button"
+                className="w-full btn btn-ghost btn-lg mb-6 gap-3"
+              >
+                <Globe className="w-5 h-5" />
+                Sign up with Google
+              </button>
+
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1 h-px bg-[var(--border-subtle)]" />
+                <span className="text-xs text-[var(--text-muted)]">or with email</span>
+                <div className="flex-1 h-px bg-[var(--border-subtle)]" />
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">

@@ -1,5 +1,5 @@
-// app/contact/page.tsx
 "use client";
+// app/contact/page.tsx
 import React, { useState } from "react";
 import { Mail, MessageSquare, ArrowRight } from "lucide-react";
 

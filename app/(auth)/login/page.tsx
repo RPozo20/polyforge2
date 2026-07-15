@@ -38,18 +38,19 @@ export default function LoginPage() {
           style={{ background: "radial-gradient(circle, #f59e0b, transparent)" }}
         />
 
-        {/* Character Image Integration */}
+        {/* Video Background */}
         <div className="absolute inset-0 z-0 flex items-end justify-center pointer-events-none">
-          {/* We use a div to apply the float animation */}
-          <div className="relative w-full h-[85%] animate-float">
-            <Image
-              src="/login-character.png"
-              alt="Premium 3D Character"
-              fill
-              className="object-contain object-bottom drop-shadow-2xl opacity-90 animate-fade-in-up"
-              priority
-              unoptimized
+          <div className="relative w-full h-full">
+            <video
+              src="https://res.cloudinary.com/zmbauhpv/video/upload/v1783964591/Woman_in_white_red_outfit_202607131927_zc6h3f.mp4"
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="object-cover w-full h-full opacity-60 animate-fade-in"
             />
+            {/* Gradient overlay to blend with the dark theme */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a1a] via-transparent to-transparent" />
           </div>
         </div>
 
@@ -111,9 +112,9 @@ export default function LoginPage() {
           </button>
 
           <div className="flex items-center gap-4 mb-6">
-            <hr className="flex-1 divider" />
+            <div className="flex-1 h-px bg-[var(--border-subtle)]" />
             <span className="text-xs text-[var(--text-muted)]">or</span>
-            <hr className="flex-1 divider" />
+            <div className="flex-1 h-px bg-[var(--border-subtle)]" />
           </div>
 
           {/* Form */}

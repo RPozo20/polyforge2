@@ -177,27 +177,26 @@ export default function MarketplacePage() {
         </div>
 
         <div className="flex gap-6">
+          {/* Mobile sidebar backdrop */}
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
           {/* Sidebar */}
           <aside
             className={`
-              w-64 flex-shrink-0
-              lg:block
-              ${sidebarOpen ? "block fixed inset-0 z-40 lg:relative lg:z-auto" : "hidden"}
+              flex-shrink-0
+              lg:block lg:w-64
+              ${sidebarOpen
+                ? "fixed right-0 top-0 h-full w-72 z-50 glass-strong border-l border-[var(--border-default)] p-6 overflow-y-auto"
+                : "hidden"
+              }
             `}
           >
-            {/* Mobile backdrop */}
-            {sidebarOpen && (
-              <div
-                className="absolute inset-0 bg-black/60 lg:hidden"
-                onClick={() => setSidebarOpen(false)}
-              />
-            )}
-            <div
-              className={`
-                lg:sticky lg:top-24 space-y-6
-                ${sidebarOpen ? "absolute right-0 top-0 h-full w-72 glass-strong border-l border-[var(--border-default)] p-6 overflow-y-auto z-50" : ""}
-              `}
-            >
+            <div className="lg:sticky lg:top-24 space-y-6">
               {/* Price range */}
               <div>
                 <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-3">
