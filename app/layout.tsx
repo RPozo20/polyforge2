@@ -4,6 +4,8 @@ import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { CartDrawer } from "@/components/layout/CartDrawer";
+import { SessionProvider } from "@/components/providers/SessionProvider";
+
 
 export const metadata: Metadata = {
   title: {
@@ -61,10 +63,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body>
-        <Navbar />
-        <CartDrawer />
-        <main>{children}</main>
-        <Footer />
+        <SessionProvider>
+          <Navbar />
+          <CartDrawer />
+          <main>{children}</main>
+          <Footer />
+        </SessionProvider>
       </body>
     </html>
   );

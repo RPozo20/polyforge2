@@ -15,10 +15,12 @@ import {
   Layers,
   Users,
   Zap,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCartStore } from "@/lib/store/cart";
 import { Avatar } from "@/components/ui/Avatar";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 const navLinks = [
   {
@@ -185,17 +187,7 @@ export function Navbar() {
             </button>
 
             {/* Auth */}
-            <div className="hidden sm:flex items-center gap-2">
-              <Link
-                href="/login"
-                className="btn btn-ghost btn-sm hidden lg:flex"
-              >
-                Sign In
-              </Link>
-              <Link href="/register" className="btn btn-primary btn-sm">
-                Get Started
-              </Link>
-            </div>
+            <AuthButtons />
 
             {/* Mobile Menu Toggle */}
             <button
@@ -246,12 +238,7 @@ export function Navbar() {
             </div>
             <hr className="divider" />
             <div className="flex flex-col gap-3">
-              <Link href="/register" className="btn btn-primary btn-md w-full">
-                Get Started
-              </Link>
-              <Link href="/login" className="btn btn-ghost btn-md w-full">
-                Sign In
-              </Link>
+              <MobileAuthButtons />
             </div>
             <div className="mt-auto text-xs text-[var(--text-muted)]">
               © 2026 POLYFORGE · All rights reserved
@@ -259,6 +246,86 @@ export function Navbar() {
           </div>
         </div>
       )}
+    </>
+  );
+}
+
+// ── Auth Buttons (desktop) ───────────────────────────────────────
+function AuthButtons() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return <div className="w-20 h-8 skeleton rounded-lg" />;
+  }
+
+  if (session?.user) {
+    return (
+      <div className="hidden sm:flex items-center gap-2">
+        <span className="text-sm text-[var(--text-secondary)] hidden lg:block">
+          {session.user.name ?? session.user.email}
+        </span>
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="btn btn-ghost btn-sm hidden lg:flex items-center gap-1"
+          title="Sign Out"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="hidden sm:flex items-center gap-2">
+      <button
+        onClick={() => signIn("cognito")}
+        className="btn btn-ghost btn-sm hidden lg:flex"
+      >
+        Sign In
+      </button>
+      <button
+        onClick={() => signIn("cognito")}
+        className="btn btn-primary btn-sm"
+      >
+        Get Started
+      </button>
+    </div>
+  );
+}
+
+// ── Auth Buttons (mobile) ────────────────────────────────────────
+function MobileAuthButtons() {
+  const { data: session, status } = useSession();
+
+  if (status === "loading") return null;
+
+  if (session?.user) {
+    return (
+      <button
+        onClick={() => signOut({ callbackUrl: "/" })}
+        className="btn btn-ghost btn-md w-full"
+      >
+        <LogOut className="w-4 h-4" />
+        Sign Out
+      </button>
+    );
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => signIn("cognito")}
+        className="btn btn-primary btn-md w-full"
+      >
+        Get Started
+      </button>
+      <button
+        onClick={() => signIn("cognito")}
+        className="btn btn-ghost btn-md w-full"
+      >
+        Sign In
+      </button>
     </>
   );
 }
