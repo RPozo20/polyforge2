@@ -2,21 +2,42 @@
 // app/(auth)/login/page.tsx
 import React, { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { Eye, EyeOff, Sparkles, ArrowRight, Globe } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Globe } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setLoading(false);
+    setError("");
+    
+    try {
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (res?.error) {
+        setError("Invalid email or password");
+      } else {
+        router.push("/");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("An unexpected error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,7 +75,6 @@ export default function LoginPage() {
           </div>
         </div>
 
-
         {/* Quote / Stats Glass Panel */}
         <div className="relative z-10 mt-auto w-full animate-fade-in-up delay-300">
           <div className="glass-strong rounded-2xl p-6 md:p-8 relative overflow-hidden group">
@@ -89,7 +109,12 @@ export default function LoginPage() {
       </div>
 
       {/* Right panel — Form */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
+        <div className="absolute top-8 right-8">
+          <Link href="/" className="text-sm text-[var(--text-muted)] hover:text-white transition-colors">
+            Back to home
+          </Link>
+        </div>
 
         <div className="w-full max-w-md">
           <h1
@@ -99,13 +124,14 @@ export default function LoginPage() {
             Welcome back
           </h1>
           <p className="text-[var(--text-secondary)] mb-8">
-            Sign in to your POLYFORGE account
+            Sign in to your POLYFORGE account securely
           </p>
 
-          {/* OAuth */}
+          {/* OAuth Placeholder for Future Google Login */}
           <button
             id="google-signin"
             className="w-full btn btn-ghost btn-lg mb-6 gap-3"
+            type="button"
           >
             <Globe className="w-5 h-5" />
             Continue with Google
@@ -117,8 +143,13 @@ export default function LoginPage() {
             <div className="flex-1 h-px bg-[var(--border-subtle)]" />
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {error}
+              </div>
+            )}
+            
             <div>
               <label htmlFor="login-email" className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
                 Email address
@@ -165,21 +196,20 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-
+            
             <Button
               type="submit"
               variant="primary"
               size="lg"
               loading={loading}
-              className="w-full"
-              id="login-submit"
+              className="w-full mt-2"
               iconRight={!loading ? <ArrowRight className="w-4 h-4" /> : undefined}
             >
               Sign In
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-[var(--text-muted)]">
+          <p className="text-center text-sm text-[var(--text-muted)] mt-6">
             Don&apos;t have an account?{" "}
             <Link href="/register" className="text-violet-400 hover:text-violet-300 font-medium transition-colors">
               Create one free

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Sparkles, ArrowRight, CheckCircle, Gamepad2, Palette, Building2, Globe } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 
 type Role = "buyer" | "creator" | "studio";
 
@@ -35,6 +36,10 @@ export default function RegisterPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [role, setRole] = useState<Role>("buyer");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const router = useRouter();
+
   const [form, setForm] = useState({
     name: "", email: "", password: "", username: "",
   });
@@ -44,13 +49,68 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1500));
-    setLoading(false);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...form,
+          role,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "An error occurred during registration");
+      } else {
+        setSuccess(true);
+        // Optionally redirect after a few seconds, or let them click a button
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (success) {
+    return (
+      <div className="min-h-screen flex items-center justify-center py-16 px-4" style={{ background: "var(--bg-base)" }}>
+        <div className="w-full max-w-md">
+          <div className="card p-8 text-center flex flex-col items-center">
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-6">
+              <CheckCircle className="w-8 h-8 text-green-400" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-display)" }}>
+              Check your email
+            </h1>
+            <p className="text-[var(--text-secondary)] mb-8">
+              We've sent a verification link to <span className="text-white font-medium">{form.email}</span>. 
+              Please verify your email address to activate your account.
+            </p>
+            <Link href="/login" className="btn btn-primary w-full justify-center">
+              Go to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center py-16 px-4" style={{ background: "var(--bg-base)" }}>
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-2xl relative">
+        
+        <div className="absolute -top-12 left-0">
+          <Link href="/" className="text-sm text-[var(--text-muted)] hover:text-white transition-colors">
+            Back to home
+          </Link>
+        </div>
 
         <div className="card p-8">
           {/* Step indicator */}
@@ -143,12 +203,20 @@ export default function RegisterPage() {
             </>
           ) : (
             <>
-              <h1
-                className="text-2xl font-bold text-white mb-2"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                Create your account
-              </h1>
+              <div className="flex items-center justify-between mb-2">
+                <h1
+                  className="text-2xl font-bold text-white"
+                  style={{ fontFamily: "var(--font-display)" }}
+                >
+                  Create your account
+                </h1>
+                <button 
+                  onClick={() => setStep(1)}
+                  className="text-sm text-[var(--text-muted)] hover:text-white transition-colors"
+                >
+                  Back
+                </button>
+              </div>
               <p className="text-[var(--text-secondary)] text-sm mb-6">
                 Joining as{" "}
                 <span className="text-violet-400 font-medium">
@@ -156,7 +224,7 @@ export default function RegisterPage() {
                 </span>
               </p>
 
-              {/* OAuth */}
+              {/* OAuth Placeholder */}
               <button
                 type="button"
                 className="w-full btn btn-ghost btn-lg mb-6 gap-3"
@@ -172,6 +240,12 @@ export default function RegisterPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-4">
+                    {error}
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="register-name" className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5">
@@ -228,7 +302,7 @@ export default function RegisterPage() {
                     type="password"
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    placeholder="Minimum 8 characters"
+                    placeholder="Minimum 8 characters (Upper, lower, number)"
                     className="input"
                     required
                     minLength={8}
@@ -248,7 +322,7 @@ export default function RegisterPage() {
                   variant="primary"
                   size="lg"
                   loading={loading}
-                  className="w-full"
+                  className="w-full mt-2"
                   id="register-submit"
                   iconRight={!loading ? <ArrowRight className="w-4 h-4" /> : undefined}
                 >

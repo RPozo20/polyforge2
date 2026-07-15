@@ -278,18 +278,18 @@ function AuthButtons() {
 
   return (
     <div className="hidden sm:flex items-center gap-2">
-      <button
-        onClick={() => signIn("cognito")}
+      <Link
+        href="/login"
         className="btn btn-ghost btn-sm hidden lg:flex"
       >
         Sign In
-      </button>
-      <button
-        onClick={() => signIn("cognito")}
+      </Link>
+      <Link
+        href="/register"
         className="btn btn-primary btn-sm"
       >
         Get Started
-      </button>
+      </Link>
     </div>
   );
 }
@@ -314,18 +314,18 @@ function MobileAuthButtons() {
 
   return (
     <>
-      <button
-        onClick={() => signIn("cognito")}
-        className="btn btn-primary btn-md w-full"
+      <Link
+        href="/register"
+        className="btn btn-primary btn-md w-full text-center justify-center flex"
       >
         Get Started
-      </button>
-      <button
-        onClick={() => signIn("cognito")}
-        className="btn btn-ghost btn-md w-full"
+      </Link>
+      <Link
+        href="/login"
+        className="btn btn-ghost btn-md w-full text-center justify-center flex"
       >
         Sign In
-      </button>
+      </Link>
     </>
   );
 }

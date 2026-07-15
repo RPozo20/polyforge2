@@ -1,50 +1,80 @@
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth, { NextAuthOptions } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import {
+  CognitoIdentityProviderClient,
+  InitiateAuthCommand,
+} from "@aws-sdk/client-cognito-identity-provider";
 
-const userPoolId = process.env.COGNITO_USER_POOL_ID!;
+const clientId = process.env.COGNITO_CLIENT_ID!;
 const region = process.env.COGNITO_REGION ?? "us-east-1";
-const issuer = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`;
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    {
-      id: "cognito",
+    CredentialsProvider({
       name: "POLYFORGE",
-      type: "oauth",
-      wellKnown: `${issuer}/.well-known/openid-configuration`,
-      clientId: process.env.COGNITO_CLIENT_ID!,
-      checks: ["pkce", "state"],
-      authorization: {
-        params: {
-          scope: "openid email profile",
-          response_type: "code",
-        },
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
-      idToken: true,
-      profile(profile) {
-        return {
-          id: profile.sub,
-          name: profile.name ?? profile.email,
-          email: profile.email,
-          image: profile.picture ?? null,
-        };
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          return null;
+        }
+
+        const client = new CognitoIdentityProviderClient({ region });
+        
+        try {
+          const command = new InitiateAuthCommand({
+            AuthFlow: "USER_PASSWORD_AUTH",
+            AuthParameters: {
+              USERNAME: credentials.email,
+              PASSWORD: credentials.password,
+            },
+            ClientId: clientId,
+          });
+
+          const response = await client.send(command);
+
+          if (response.AuthenticationResult) {
+            // Decode the ID token to get the user's details
+            const idToken = response.AuthenticationResult.IdToken;
+            if (!idToken) return null;
+            
+            // Simple base64 decode for the payload
+            const payload = JSON.parse(Buffer.from(idToken.split('.')[1], 'base64').toString());
+
+            return {
+              id: payload.sub,
+              name: payload.name || payload.email,
+              email: payload.email,
+            };
+          }
+          return null;
+        } catch (error) {
+          console.error("Cognito Auth Error:", error);
+          return null;
+        }
       },
-    },
+    }),
   ],
   session: {
     strategy: "jwt",
   },
   callbacks: {
-    async jwt({ token, account, profile }) {
-      if (account) {
-        token.accessToken = account.access_token;
-        token.idToken = account.id_token;
+    async jwt({ token, user }) {
+      if (user) {
+        token.sub = user.id;
+        token.email = user.email;
+        token.name = user.name;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub ?? "";
+        session.user.email = token.email ?? "";
+        session.user.name = token.name ?? "";
       }
       return session;
     },
