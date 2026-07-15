@@ -43,6 +43,8 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     name: "", email: "", password: "", username: "",
   });
+  const [code, setCode] = useState("");
+  const [confirming, setConfirming] = useState(false);
 
   const handleNext = () => setStep(2);
 
@@ -69,7 +71,6 @@ export default function RegisterPage() {
         setError(data.error || "An error occurred during registration");
       } else {
         setSuccess(true);
-        // Optionally redirect after a few seconds, or let them click a button
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -78,24 +79,78 @@ export default function RegisterPage() {
     }
   };
 
+  const handleConfirm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setConfirming(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/confirm", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: form.email, code }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid verification code");
+      } else {
+        router.push("/login?verified=true");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setConfirming(false);
+    }
+  };
+
   if (success) {
     return (
       <div className="min-h-screen flex items-center justify-center py-16 px-4" style={{ background: "var(--bg-base)" }}>
         <div className="w-full max-w-md">
           <div className="card p-8 text-center flex flex-col items-center">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-6">
-              <CheckCircle className="w-8 h-8 text-green-400" />
+            <div className="w-16 h-16 bg-violet-500/20 rounded-full flex items-center justify-center mb-6">
+              <Sparkles className="w-8 h-8 text-violet-400" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-display)" }}>
               Check your email
             </h1>
-            <p className="text-[var(--text-secondary)] mb-8">
-              We've sent a verification link to <span className="text-white font-medium">{form.email}</span>. 
-              Please verify your email address to activate your account.
+            <p className="text-[var(--text-secondary)] mb-6 text-sm">
+              We've sent a 6-digit verification code to <span className="text-white font-medium">{form.email}</span>. 
+              Enter it below to activate your account.
             </p>
-            <Link href="/login" className="btn btn-primary w-full justify-center">
-              Go to Login
-            </Link>
+
+            <form onSubmit={handleConfirm} className="w-full space-y-4">
+              {error && (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm mb-4">
+                  {error}
+                </div>
+              )}
+              
+              <div>
+                <input
+                  type="text"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  placeholder="000000"
+                  className="input text-center text-2xl tracking-widest font-mono"
+                  required
+                  maxLength={6}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="lg"
+                loading={confirming}
+                className="w-full"
+                iconRight={!confirming ? <ArrowRight className="w-4 h-4" /> : undefined}
+              >
+                Verify Account
+              </Button>
+            </form>
           </div>
         </div>
       </div>
