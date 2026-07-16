@@ -87,7 +87,7 @@ export default function MarketplacePage() {
       list = list.filter(
         (a) =>
           a.title.toLowerCase().includes(q) ||
-          a.tags.some((t) => t.includes(q)) ||
+          a.tags.some((t: string) => t.includes(q)) ||
           a.creatorName.toLowerCase().includes(q)
       );
     }

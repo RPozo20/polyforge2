@@ -167,7 +167,7 @@ export default function AssetDetailPage({ params }: PageProps) {
 
             {/* Thumbnails */}
             <div className="flex gap-3 overflow-x-auto no-scrollbar pb-1">
-              {asset.gallery.map((img, i) => (
+              {asset.gallery.map((img: string, i: number) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
@@ -191,7 +191,7 @@ export default function AssetDetailPage({ params }: PageProps) {
                 {asset.description}
               </p>
               <div className="flex flex-wrap gap-2 pt-2">
-                {asset.tags.map((tag) => (
+                {asset.tags.map((tag: string) => (
                   <Link
                     key={tag}
                     href={`/marketplace?q=${tag}`}
@@ -209,7 +209,7 @@ export default function AssetDetailPage({ params }: PageProps) {
                 Technical Specifications
               </h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {specs.map((spec) => (
+                {specs.map((spec: any) => (
                   <div
                     key={spec.label}
                     className="p-3 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border-subtle)]"
@@ -225,7 +225,7 @@ export default function AssetDetailPage({ params }: PageProps) {
               <div>
                 <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest mb-3">Included Formats</p>
                 <div className="flex flex-wrap gap-2">
-                  {asset.formats.map((f) => (
+                  {asset.formats.map((f: any) => (
                     <span key={f.name} className="badge badge-surface">
                       {f.name}{f.version ? ` ${f.version}` : ""}
                     </span>
@@ -237,7 +237,7 @@ export default function AssetDetailPage({ params }: PageProps) {
               <div>
                 <p className="text-xs text-[var(--text-muted)] uppercase tracking-widest mb-3">Compatible Software</p>
                 <div className="flex flex-wrap gap-2">
-                  {asset.software.map((sw) => (
+                  {asset.software.map((sw: string) => (
                     <span key={sw} className="badge badge-primary">{sw}</span>
                   ))}
                 </div>
@@ -250,7 +250,7 @@ export default function AssetDetailPage({ params }: PageProps) {
                     Included Animations ({asset.animations.length})
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {asset.animations.map((anim) => (
+                    {asset.animations.map((anim: string) => (
                       <span key={anim} className="badge badge-surface">{anim}</span>
                     ))}
                   </div>
