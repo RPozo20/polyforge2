@@ -30,7 +30,7 @@ export function DashboardHeader() {
   }, []);
 
   return (
-    <header className="h-20 border-b border-white/5 bg-[#0a0a1a]/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-8 md:px-10 lg:px-12">
+    <header className="h-24 border-b border-white/5 bg-[#0a0a1a]/80 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-8 md:px-12 lg:px-16">
       
       {/* Search Bar */}
       <div className="relative w-full max-w-md hidden md:block">
@@ -38,12 +38,13 @@ export function DashboardHeader() {
         <input 
           type="text" 
           placeholder="Search your assets..." 
-          className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-colors"
+          className="w-full bg-white/5 border border-white/10 rounded-full py-2.5 pr-4 text-sm text-white focus:outline-none focus:border-violet-500/50 transition-colors"
+          style={{ paddingLeft: '3rem' }}
         />
       </div>
 
       {/* Right Actions */}
-      <div className="flex items-center gap-6 ml-auto">
+      <div className="flex items-center gap-8 ml-auto">
         <Link href="/dashboard/upload" className="btn btn-primary py-2 px-5 hidden sm:flex items-center gap-2 text-sm shadow-[0_0_15px_rgba(124,58,237,0.3)]">
           <UploadCloud className="w-4 h-4" />
           <span>New Asset</span>

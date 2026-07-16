@@ -36,13 +36,13 @@ export function CategoryGrid() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {featured.map((category, index) => (
             <Link
               key={category.id}
               href={`/marketplace?category=${category.slug}`}
               id={`category-${category.slug}`}
-              className="group relative overflow-hidden rounded-2xl p-5 border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all duration-300 cursor-pointer animate-fade-in-up"
+              className="group relative overflow-hidden rounded-2xl p-6 border border-[var(--border-subtle)] hover:border-[var(--border-default)] transition-all duration-300 cursor-pointer animate-fade-in-up"
               style={{
                 background: `radial-gradient(ellipse at 0% 0%, ${category.color}15 0%, var(--bg-surface) 70%)`,
                 animationDelay: `${index * 80}ms`,

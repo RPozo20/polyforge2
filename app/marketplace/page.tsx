@@ -144,7 +144,7 @@ export default function MarketplacePage() {
     <div className="min-h-screen pt-20 px-4" style={{ background: "var(--bg-base)" }}>
       {/* Page header */}
       <div
-        className="border-b border-[var(--border-subtle)] py-8"
+        className="border-b border-[var(--border-subtle)] py-12"
         style={{ background: "var(--bg-surface)" }}
       >
         <div className="container-xl">
@@ -160,9 +160,9 @@ export default function MarketplacePage() {
         </div>
       </div>
 
-      <div className="container-xl py-8">
+      <div className="container-xl py-10">
         {/* Toolbar */}
-        <div className="flex flex-wrap items-center gap-3 mb-8">
+        <div className="flex flex-wrap items-center gap-3 mb-10">
           {/* Search */}
           <div className="relative flex-1 min-w-48">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
@@ -236,7 +236,7 @@ export default function MarketplacePage() {
           )}
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex gap-10">
           {/* Mobile sidebar backdrop */}
           {sidebarOpen && (
             <div
@@ -256,7 +256,7 @@ export default function MarketplacePage() {
               }
             `}
           >
-            <div className="lg:sticky lg:top-24 space-y-6">
+            <div className="lg:sticky lg:top-24 space-y-8">
               {/* Price range */}
               <div>
                 <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-3">
@@ -382,8 +382,8 @@ export default function MarketplacePage() {
               <div
                 className={
                   view === "grid"
-                    ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5"
-                    : "flex flex-col gap-4"
+                    ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8"
+                    : "flex flex-col gap-6"
                 }
               >
                 {filtered.map((asset, i) => (

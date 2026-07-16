@@ -207,7 +207,7 @@ function UploadAssetForm() {
         style: { background: '#1a0a35', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }
       }} />
 
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-12 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-display text-white mb-2">{editId ? "Edit Asset" : "Upload New Asset"}</h1>
           <p className="text-gray-400">{editId ? "Update your 3D model details." : "Add a new 3D model, texture pack, or environment to your studio."}</p>
@@ -225,11 +225,11 @@ function UploadAssetForm() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        <div className="lg:col-span-2 flex flex-col gap-10">
           {/* Upload Dropzone */}
           <div 
-            className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-all duration-300 ${
+            className={`border-2 border-dashed rounded-2xl py-16 px-10 flex flex-col items-center justify-center transition-all duration-300 ${
               isDragging 
                 ? "border-violet-500 bg-violet-500/10" 
                 : "border-white/10 bg-white/5 hover:border-violet-500/50 hover:bg-white/10"
@@ -279,41 +279,44 @@ function UploadAssetForm() {
           </div>
 
           {/* Form Details */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-5">
-            <h3 className="text-xl font-display font-bold text-white mb-2">Asset Details</h3>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-10 flex flex-col gap-8">
+            <h3 className="text-2xl font-display font-bold text-white mb-2">Asset Details</h3>
             
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Asset Title <span className="text-rose-500">*</span></label>
+              <label className="block text-center text-sm font-medium text-gray-300 mb-3">Asset Title <span className="text-rose-500">*</span></label>
               <input 
                 type="text" 
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 disabled={isUploading}
                 placeholder="e.g. Cyberpunk City Environment Pack" 
-                className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                style={{ textAlign: 'center' }}
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+              <label className="block text-center text-sm font-medium text-gray-300 mb-3">Description</label>
               <textarea 
-                rows={4}
+                rows={5}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 disabled={isUploading}
                 placeholder="Describe what's included, technical details, polygon count, etc." 
-                className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all resize-none disabled:opacity-50"
+                className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all resize-none disabled:opacity-50"
+                style={{ textAlign: 'center' }}
               ></textarea>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                <label className="block text-center text-sm font-medium text-gray-300 mb-3">Category</label>
                 <select 
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
                   disabled={isUploading}
-                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all appearance-none disabled:opacity-50"
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all appearance-none disabled:opacity-50"
+                  style={{ textAlign: 'center', textAlignLast: 'center' }}
                 >
                   <option>Characters</option>
                   <option>Environments</option>
@@ -322,14 +325,15 @@ function UploadAssetForm() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Tags (comma separated)</label>
+                <label className="block text-center text-sm font-medium text-gray-300 mb-3">Tags (comma separated)</label>
                 <input 
                   type="text" 
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   disabled={isUploading}
                   placeholder="sci-fi, low-poly, rigged..." 
-                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                  style={{ textAlign: 'center' }}
                 />
               </div>
             </div>
@@ -337,9 +341,9 @@ function UploadAssetForm() {
         </div>
 
         {/* Pricing & Settings */}
-        <div className="space-y-6">
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h3 className="text-xl font-display font-bold text-white mb-4">Pricing</h3>
+        <div className="flex flex-col gap-10">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-10 flex flex-col gap-6">
+            <h3 className="text-2xl font-display font-bold text-white mb-2">Pricing</h3>
             
             <div className="space-y-4">
               <label className="flex items-start gap-3 cursor-pointer group">
@@ -360,8 +364,8 @@ function UploadAssetForm() {
                   <p className="text-sm text-gray-400 mt-1">Set a price for this asset.</p>
                   
                   {!isFree && (
-                    <div className="mt-3 relative animate-fade-in-up">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                    <div className="mt-4 relative animate-fade-in-up">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">$</span>
                       <input 
                         type="number" 
                         value={price}
@@ -370,7 +374,8 @@ function UploadAssetForm() {
                         placeholder="29.99"
                         min="0"
                         step="0.01"
-                        className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl pl-8 pr-4 py-2.5 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
+                        className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl pr-5 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
+                        style={{ paddingLeft: '3rem' }}
                       />
                     </div>
                   )}
@@ -403,8 +408,8 @@ function UploadAssetForm() {
             </div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-            <h3 className="text-xl font-display font-bold text-white mb-4">Thumbnails</h3>
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-10 flex flex-col gap-6">
+            <h3 className="text-2xl font-display font-bold text-white mb-2">Thumbnails</h3>
             <div className="aspect-video bg-[#0a0a1a] border border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:border-violet-500/50 hover:bg-white/5 transition-all relative overflow-hidden group">
               <input 
                 type="file" 

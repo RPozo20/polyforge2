@@ -12,12 +12,12 @@ export default function DashboardLayout({
       <DashboardSidebar />
       
       {/* Main Content Area */}
-      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden" style={{ marginLeft: "256px" }}>
+      <div className="relative flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
         <DashboardHeader />
         
         {/* Page Content */}
         <main className="w-full flex-1">
-          <div className="p-8 md:p-10 lg:p-12 w-full max-w-7xl mx-auto">
+          <div className="p-8 md:p-12 lg:p-16 w-full max-w-7xl mx-auto">
             {children}
           </div>
         </main>

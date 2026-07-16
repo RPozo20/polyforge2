@@ -221,6 +221,7 @@ export default function SettingsPage() {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-all"
+                      style={{ padding: '0.75rem 1rem' }}
                     />
                   </div>
                   
@@ -231,6 +232,7 @@ export default function SettingsPage() {
                       value={bio}
                       onChange={(e) => setBio(e.target.value)}
                       className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-all resize-none"
+                      style={{ padding: '0.75rem 1rem' }}
                     ></textarea>
                     <p className="text-xs text-gray-500 mt-2">Brief description for your profile. 250 characters max.</p>
                   </div>
@@ -242,6 +244,7 @@ export default function SettingsPage() {
                       value={website}
                       onChange={(e) => setWebsite(e.target.value)}
                       className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-all"
+                      style={{ padding: '0.75rem 1rem' }}
                     />
                   </div>
                 </div>
@@ -277,6 +280,7 @@ export default function SettingsPage() {
                     value={paypalEmail}
                     onChange={(e) => setPaypalEmail(e.target.value)}
                     className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-all"
+                    style={{ padding: '0.75rem 1rem' }}
                   />
                 </div>
               </div>
@@ -328,6 +332,7 @@ export default function SettingsPage() {
                       type="password" 
                       placeholder="••••••••"
                       className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-all"
+                      style={{ padding: '0.75rem 1rem' }}
                     />
                   </div>
                   <div>
@@ -336,6 +341,7 @@ export default function SettingsPage() {
                       type="password" 
                       placeholder="••••••••"
                       className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 transition-all"
+                      style={{ padding: '0.75rem 1rem' }}
                     />
                   </div>
                 </div>

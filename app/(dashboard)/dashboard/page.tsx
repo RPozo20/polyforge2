@@ -17,7 +17,7 @@ const recentActivity = [
 
 export default function DashboardOverview() {
   return (
-    <div className="max-w-6xl mx-auto space-y-8 animate-fade-in-up">
+    <div className="max-w-6xl mx-auto flex flex-col gap-12 animate-fade-in-up">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold font-display text-white mb-2">Welcome back, Studio Admin</h1>
@@ -29,9 +29,9 @@ export default function DashboardOverview() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {stats.map((stat) => (
-          <div key={stat.name} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:border-violet-500/30 transition-colors">
+          <div key={stat.name} className="bg-white/5 border border-white/10 rounded-2xl p-8 hover:border-violet-500/30 transition-colors">
             <div className="flex items-center justify-between mb-4">
               <div className="w-12 h-12 rounded-xl bg-violet-600/20 flex items-center justify-center text-violet-400">
                 <stat.icon className="w-6 h-6" />
@@ -48,9 +48,9 @@ export default function DashboardOverview() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         {/* Main Chart Area (Placeholder) */}
-        <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-6">
+        <div className="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-white font-display">Revenue Overview</h2>
             <select className="bg-[#0a0a1a] border border-white/10 rounded-lg px-3 py-1.5 text-sm text-gray-300 outline-none">
@@ -66,7 +66,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+        <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
           <h2 className="text-lg font-bold text-white font-display mb-6">Recent Activity</h2>
           <div className="space-y-6">
             {recentActivity.map((activity) => (
