@@ -34,6 +34,14 @@ export function AssetCard({ asset, variant = "default" }: AssetCardProps) {
     setLiked(!liked);
   };
 
+    const [imgSrc, setImgSrc] = useState(asset.thumbnail);
+    const [imgError, setImgError] = useState(false);
+
+    React.useEffect(() => {
+        setImgSrc(asset.thumbnail);
+        setImgError(false);
+    }, [asset.thumbnail]);
+
   return (
     <article className="group card overflow-hidden h-full flex flex-col relative transition-all hover:border-[rgba(124,58,237,0.35)] hover:-translate-y-0.5 hover:shadow-lg">
       {/* Thumbnail */}
@@ -43,12 +51,13 @@ export function AssetCard({ asset, variant = "default" }: AssetCardProps) {
             className={variant === "compact" ? "aspect-[3/2]" : "aspect-[4/3]"}
           >
             <Image
-              src={asset.thumbnail}
+              src={imgError ? "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80" : imgSrc}
               alt={asset.title}
               fill
               className="object-cover transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               unoptimized
+              onError={() => setImgError(true)}
             />
           </div>
 

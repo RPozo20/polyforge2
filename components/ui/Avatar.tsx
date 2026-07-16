@@ -1,3 +1,4 @@
+"use client";
 // components/ui/Avatar.tsx
 import React from "react";
 import Image from "next/image";
@@ -37,9 +38,15 @@ function getInitials(name: string): string {
 }
 
 export function Avatar({ src, name, size = "md", className, verified }: AvatarProps) {
+  const [error, setError] = React.useState(false);
+
+  React.useEffect(() => {
+    setError(false);
+  }, [src]);
+
   return (
     <div className={cn("relative flex-shrink-0", sizeMap[size], className)}>
-      {src ? (
+      {src && !error ? (
         <Image
           src={src}
           alt={name}
@@ -47,6 +54,7 @@ export function Avatar({ src, name, size = "md", className, verified }: AvatarPr
           className="rounded-full object-cover"
           sizes="80px"
           unoptimized
+          onError={() => setError(true)}
         />
       ) : (
         <div

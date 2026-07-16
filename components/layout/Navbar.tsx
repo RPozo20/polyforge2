@@ -56,6 +56,11 @@ export function Navbar() {
   const pathname = usePathname();
   const { count, toggleCart } = useCartStore();
   const cartCount = count();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -67,6 +72,10 @@ export function Navbar() {
     setMobileOpen(false);
     setActiveDropdown(null);
   }, [pathname]);
+
+  if (pathname.startsWith("/dashboard")) {
+    return null;
+  }
 
   return (
     <>
@@ -179,7 +188,7 @@ export function Navbar() {
               aria-label="Shopping cart"
             >
               <ShoppingCart className="w-5 h-5" />
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center">
                   {cartCount}
                 </span>
@@ -260,17 +269,20 @@ function AuthButtons() {
 
   if (session?.user) {
     return (
-      <div className="hidden sm:flex items-center gap-2">
-        <span className="text-sm text-[var(--text-secondary)] hidden lg:block">
-          {session.user.name ?? session.user.email}
-        </span>
+      <div className="hidden sm:flex items-center gap-3">
+        <Link 
+          href="/dashboard"
+          className="flex items-center gap-2 text-sm font-medium text-white hover:text-violet-400 transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10"
+        >
+          <Avatar name={session.user.name || "User"} size="xs" />
+          <span className="hidden lg:block">{session.user.name?.split(' ')[0] ?? "Dashboard"}</span>
+        </Link>
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           className="btn btn-ghost btn-sm hidden lg:flex items-center gap-1"
           title="Sign Out"
         >
           <LogOut className="w-4 h-4" />
-          Sign Out
         </button>
       </div>
     );
@@ -302,13 +314,21 @@ function MobileAuthButtons() {
 
   if (session?.user) {
     return (
-      <button
-        onClick={() => signOut({ callbackUrl: "/" })}
-        className="btn btn-ghost btn-md w-full"
-      >
-        <LogOut className="w-4 h-4" />
-        Sign Out
-      </button>
+      <>
+        <Link 
+          href="/dashboard"
+          className="btn btn-primary btn-md w-full justify-center"
+        >
+          Creator Dashboard
+        </Link>
+        <button
+          onClick={() => signOut({ callbackUrl: "/" })}
+          className="btn btn-ghost btn-md w-full"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign Out
+        </button>
+      </>
     );
   }
 

@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Sparkles, MessageCircle, Camera, Video, Code, ArrowRight } from "lucide-react";
 
 const footerLinks = {
@@ -38,6 +41,12 @@ const socialLinks = [
 ];
 
 export function Footer() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/dashboard")) {
+    return null;
+  }
+
   return (
     <footer className="border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] mt-24">
       {/* Newsletter strip */}

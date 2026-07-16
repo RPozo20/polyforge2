@@ -9,7 +9,7 @@ import {
   CheckCircle, Shield, Zap, Layers, Cpu, ChevronRight,
   Box, Triangle, Bone, Blend
 } from "lucide-react";
-import { getAssetBySlug, assets } from "@/lib/mock/assets";
+import { getAssetBySlug, assets as mockAssets } from "@/lib/mock/assets";
 import { formatPrice, formatNumber } from "@/lib/utils";
 import { RatingStars } from "@/components/ui/RatingStars";
 import { Avatar } from "@/components/ui/Avatar";
@@ -22,12 +22,85 @@ interface PageProps {
 
 export default function AssetDetailPage({ params }: PageProps) {
   const { slug } = React.use(params);
-  const asset = getAssetBySlug(slug);
+  
+  const [asset, setAsset] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [liked, setLiked] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const { addItem, items } = useCartStore();
+
+  React.useEffect(() => {
+    async function fetchAsset() {
+      try {
+        const res = await fetch(`/api/assets/${slug}`);
+        if (res.ok) {
+          const data = await res.json();
+          const a = data.asset;
+          
+          // Map DB format to Asset interface
+          setAsset({
+            id: a.id,
+            slug: a.id,
+            title: a.title || "Untitled",
+            description: a.description || "",
+            thumbnail: a.coverImageKey 
+              ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`
+              : "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80",
+            gallery: a.coverImageKey ? [`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`] : ["https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80"],
+            creatorId: a.PK,
+            creatorName: a.author?.name || "Studio Admin",
+            creatorAvatar: a.author?.avatar || "https://api.dicebear.com/7.x/shapes/svg?seed=fallback",
+            category: a.category || "stylized",
+            tags: a.tags ? (typeof a.tags === 'string' ? a.tags.split(',') : a.tags) : [],
+            price: a.price || 0,
+            currency: "USD",
+            rating: 5.0,
+            reviewCount: 0,
+            downloadCount: 0,
+            favoriteCount: 0,
+            publishedAt: a.createdAt || new Date().toISOString(),
+            updatedAt: a.updatedAt || new Date().toISOString(),
+            featured: true,
+            trending: true,
+            staffPick: false,
+            newRelease: true,
+            polyCount: 0,
+            triangleCount: 0,
+            hasRig: false,
+            lodLevels: 0,
+            formats: [],
+            software: [],
+            textureResolution: "N/A",
+            hasBlendShapes: false,
+            hasBones: false,
+            licenseType: "personal",
+            accentColor: "#7c3aed"
+          });
+        } else {
+          // Fallback to mock
+          const mock = getAssetBySlug(slug);
+          if (mock) setAsset(mock);
+        }
+      } catch (error) {
+        // Fallback to mock
+        const mock = getAssetBySlug(slug);
+        if (mock) setAsset(mock);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAsset();
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-32 flex justify-center text-violet-400">
+        Loading asset details...
+      </div>
+    );
+  }
 
   if (!asset) notFound();
 
@@ -40,7 +113,7 @@ export default function AssetDetailPage({ params }: PageProps) {
     setTimeout(() => setJustAdded(false), 2500);
   };
 
-  const related = assets
+  const related = mockAssets
     .filter((a) => a.id !== asset.id && a.category === asset.category)
     .slice(0, 4);
 

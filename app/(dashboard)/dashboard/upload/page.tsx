@@ -1,0 +1,460 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { UploadCloud, FileType, CheckCircle2, X, Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast";
+
+export default function UploadAssetPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+
+  const [isDragging, setIsDragging] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+
+  // Form State
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("Characters");
+  const [tags, setTags] = useState("");
+  const [isFree, setIsFree] = useState(false);
+  const [price, setPrice] = useState("");
+  
+  // Edit mode original states
+  const [originalObjectKey, setOriginalObjectKey] = useState<string | undefined>();
+  const [originalCoverKey, setOriginalCoverKey] = useState<string | undefined>();
+  const [createdAt, setCreatedAt] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (editId) {
+      const fetchAsset = async () => {
+        try {
+          const res = await fetch(`/api/assets/${editId}`);
+          if (res.ok) {
+            const data = await res.json();
+            const a = data.asset;
+            setTitle(a.title || "");
+            setDescription(a.description || "");
+            setCategory(a.category || "Characters");
+            setTags(a.tags ? a.tags.join(", ") : "");
+            setIsFree(a.isFree);
+            setPrice(a.price ? a.price.toString() : "");
+            setOriginalObjectKey(a.objectKey);
+            setOriginalCoverKey(a.coverImageKey);
+            setCreatedAt(a.createdAt);
+            
+            if (a.coverImageKey) {
+              setCoverPreview(`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`);
+            }
+          }
+        } catch (e) {
+          console.error("Failed to load asset for editing", e);
+        }
+      };
+      fetchAsset();
+    }
+  }, [editId]);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!file && !editId) {
+      toast.error("Please select a 3D asset file to upload.");
+      return;
+    }
+    if (!title) {
+      toast.error("Please provide a title for your asset.");
+      return;
+    }
+    if (!isFree && !price) {
+      toast.error("Please set a price or mark the asset as free.");
+      return;
+    }
+
+    setIsUploading(true);
+    const loadingToast = toast.loading(editId ? "Updating asset..." : "Preparing upload...");
+
+    try {
+      let finalObjectKey = originalObjectKey;
+
+      if (file) {
+        toast.loading("Generating secure upload link...", { id: loadingToast });
+        const presignRes = await fetch("/api/assets/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: file.name,
+            contentType: file.type || "application/octet-stream",
+          }),
+        });
+
+        if (!presignRes.ok) throw new Error("Failed to get presigned URL");
+        const { uploadUrl, objectKey } = await presignRes.json();
+        
+        // Always assign the key so the DB record can be created, even if R2 upload fails (e.g. CORS issues)
+        finalObjectKey = objectKey;
+
+        toast.loading("Uploading large asset directly to storage...", { id: loadingToast });
+        try {
+          const uploadRes = await fetch(uploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": file.type || "application/octet-stream" },
+            body: file,
+          });
+          if (!uploadRes.ok) console.warn("R2 upload returned non-200 status", uploadRes.status);
+        } catch (r2Error) {
+          console.warn("R2 upload failed:", r2Error);
+        }
+      }
+
+      let finalCoverImageKey = originalCoverKey;
+
+      if (coverImage) {
+        toast.loading("Uploading cover image...", { id: loadingToast });
+        const coverPresignRes = await fetch("/api/assets/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: coverImage.name,
+            contentType: coverImage.type || "image/jpeg",
+          }),
+        });
+
+        if (!coverPresignRes.ok) throw new Error("Failed to get presigned URL for cover image");
+        const { uploadUrl: coverUploadUrl, objectKey: coverObjectKey } = await coverPresignRes.json();
+
+        // Always assign the key
+        finalCoverImageKey = coverObjectKey;
+
+        try {
+          const coverUploadRes = await fetch(coverUploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": coverImage.type || "image/jpeg" },
+            body: coverImage,
+          });
+          if (!coverUploadRes.ok) console.warn("Cover R2 upload returned non-200 status", coverUploadRes.status);
+        } catch (error) {
+          console.warn("Cover upload failed", error);
+        }
+      }
+
+      // 3. Save asset metadata to DynamoDB
+      toast.loading("Saving asset details to database...", { id: loadingToast });
+      
+      const method = editId ? "PUT" : "POST";
+      const payload: any = {
+        title,
+        description,
+        category,
+        tags: tags.split(",").map(t => t.trim()),
+        price: isFree ? 0 : parseFloat(price),
+        isFree,
+        objectKey: finalObjectKey,
+        coverImageKey: finalCoverImageKey,
+      };
+      
+      if (editId) {
+        payload.id = editId;
+        payload.createdAt = createdAt;
+      }
+
+      const dbRes = await fetch("/api/assets", {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!dbRes.ok) throw new Error("Failed to save asset metadata");
+
+      toast.success("Asset published successfully!", { id: loadingToast });
+      
+      // Redirect to assets list after a short delay
+      setTimeout(() => {
+        router.push("/dashboard/assets");
+      }, 1500);
+
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message || "An error occurred during upload.", { id: loadingToast });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto animate-fade-in-up pb-20">
+      <Toaster position="top-center" toastOptions={{
+        style: { background: '#1a0a35', color: '#fff', border: '1px solid rgba(255,255,255,0.1)' }
+      }} />
+
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold font-display text-white mb-2">{editId ? "Edit Asset" : "Upload New Asset"}</h1>
+          <p className="text-gray-400">{editId ? "Update your 3D model details." : "Add a new 3D model, texture pack, or environment to your studio."}</p>
+        </div>
+        <button 
+          onClick={handlePublish}
+          disabled={isUploading}
+          className="btn btn-primary hidden sm:flex items-center gap-2"
+        >
+          {isUploading ? (
+            <><Loader2 className="w-4 h-4 animate-spin" /> {editId ? "Updating..." : "Publishing..."}</>
+          ) : (
+            editId ? "Update Asset" : "Publish Asset"
+          )}
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Upload Dropzone */}
+          <div 
+            className={`border-2 border-dashed rounded-2xl p-10 flex flex-col items-center justify-center transition-all duration-300 ${
+              isDragging 
+                ? "border-violet-500 bg-violet-500/10" 
+                : "border-white/10 bg-white/5 hover:border-violet-500/50 hover:bg-white/10"
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {file ? (
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-medium text-white mb-1">{file.name}</h3>
+                <p className="text-sm text-gray-400 mb-6">{(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                <button 
+                  onClick={() => setFile(null)}
+                  disabled={isUploading}
+                  className="flex items-center gap-2 text-sm text-rose-400 hover:text-rose-300 transition-colors disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" /> Remove file
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center text-center pointer-events-none">
+                <div className="w-16 h-16 rounded-2xl bg-violet-600/20 text-violet-400 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(124,58,237,0.2)]">
+                  <UploadCloud className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-medium text-white mb-2">Drag & drop your 3D files here</h3>
+                <p className="text-sm text-gray-400 mb-6 max-w-sm">
+                  Supports .glb, .gltf, .fbx, .obj, and .zip archives up to 500MB.
+                </p>
+                <div className="pointer-events-auto">
+                  <input 
+                    type="file" 
+                    id="file-upload" 
+                    className="hidden" 
+                    onChange={(e) => e.target.files && setFile(e.target.files[0])} 
+                    disabled={isUploading}
+                  />
+                  <label htmlFor="file-upload" className={`btn btn-secondary cursor-pointer ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                    Browse Files
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Form Details */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-5">
+            <h3 className="text-xl font-display font-bold text-white mb-2">Asset Details</h3>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Asset Title <span className="text-rose-500">*</span></label>
+              <input 
+                type="text" 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                disabled={isUploading}
+                placeholder="e.g. Cyberpunk City Environment Pack" 
+                className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Description</label>
+              <textarea 
+                rows={4}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                disabled={isUploading}
+                placeholder="Describe what's included, technical details, polygon count, etc." 
+                className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all resize-none disabled:opacity-50"
+              ></textarea>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+                <select 
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  disabled={isUploading}
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all appearance-none disabled:opacity-50"
+                >
+                  <option>Characters</option>
+                  <option>Environments</option>
+                  <option>Props</option>
+                  <option>Vehicles</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Tags (comma separated)</label>
+                <input 
+                  type="text" 
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  disabled={isUploading}
+                  placeholder="sci-fi, low-poly, rigged..." 
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing & Settings */}
+        <div className="space-y-6">
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+            <h3 className="text-xl font-display font-bold text-white mb-4">Pricing</h3>
+            
+            <div className="space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative flex items-center justify-center mt-0.5">
+                  <input 
+                    type="radio" 
+                    name="pricing" 
+                    className="peer sr-only" 
+                    checked={!isFree} 
+                    onChange={() => setIsFree(false)}
+                    disabled={isUploading}
+                  />
+                  <div className="w-5 h-5 rounded-full border-2 border-white/20 peer-checked:border-violet-500 peer-checked:bg-violet-500 transition-colors"></div>
+                  <div className="absolute w-2 h-2 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-white group-hover:text-violet-400 transition-colors">Paid Asset</p>
+                  <p className="text-sm text-gray-400 mt-1">Set a price for this asset.</p>
+                  
+                  {!isFree && (
+                    <div className="mt-3 relative animate-fade-in-up">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                      <input 
+                        type="number" 
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        disabled={isUploading}
+                        placeholder="29.99"
+                        min="0"
+                        step="0.01"
+                        className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl pl-8 pr-4 py-2.5 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all"
+                      />
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              <div className="h-px w-full bg-white/5 my-4"></div>
+
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <div className="relative flex items-center justify-center mt-0.5">
+                  <input 
+                    type="radio" 
+                    name="pricing" 
+                    className="peer sr-only" 
+                    checked={isFree}
+                    onChange={() => {
+                      setIsFree(true);
+                      setPrice("");
+                    }}
+                    disabled={isUploading}
+                  />
+                  <div className="w-5 h-5 rounded-full border-2 border-white/20 peer-checked:border-violet-500 peer-checked:bg-violet-500 transition-colors"></div>
+                  <div className="absolute w-2 h-2 rounded-full bg-white opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+                </div>
+                <div>
+                  <p className="font-medium text-white group-hover:text-violet-400 transition-colors">Free Asset</p>
+                  <p className="text-sm text-gray-400 mt-1">Available for anyone to download.</p>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
+            <h3 className="text-xl font-display font-bold text-white mb-4">Thumbnails</h3>
+            <div className="aspect-video bg-[#0a0a1a] border border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:border-violet-500/50 hover:bg-white/5 transition-all relative overflow-hidden group">
+              <input 
+                type="file" 
+                accept="image/*"
+                className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files.length > 0) {
+                    const img = e.target.files[0];
+                    setCoverImage(img);
+                    setCoverPreview(URL.createObjectURL(img));
+                  }
+                }}
+                disabled={isUploading}
+              />
+              {coverPreview ? (
+                <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-center z-0">
+                  <FileType className="w-6 h-6 text-gray-500 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-gray-400">Add cover image</p>
+                </div>
+              )}
+            </div>
+            {coverPreview && (
+              <button 
+                onClick={(e) => {
+                  e.preventDefault();
+                  setCoverImage(null);
+                  setCoverPreview(null);
+                }}
+                disabled={isUploading}
+                className="mt-3 text-sm text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors"
+              >
+                <X className="w-4 h-4" /> Remove cover
+              </button>
+            )}
+          </div>
+
+          <div className="pt-4 flex gap-3 sm:hidden">
+            <button className="flex-1 btn btn-ghost" disabled={isUploading}>Save Draft</button>
+            <button 
+              className="flex-1 btn btn-primary flex justify-center items-center gap-2" 
+              onClick={handlePublish}
+              disabled={isUploading}
+            >
+              {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Publish"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

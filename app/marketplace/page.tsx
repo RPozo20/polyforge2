@@ -2,7 +2,6 @@
 // app/marketplace/page.tsx
 import React, { useState, useMemo } from "react";
 import { SlidersHorizontal, Grid3X3, List, Search, X } from "lucide-react";
-import { assets } from "@/lib/mock/assets";
 import { categories, licenseTypes, softwareList } from "@/lib/mock/categories";
 import { AssetCard } from "@/components/marketplace/AssetCard";
 import { formatNumber } from "@/lib/utils";
@@ -19,8 +18,69 @@ export default function MarketplacePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [query, setQuery] = useState("");
 
+  const [realAssets, setRealAssets] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    async function fetchAssets() {
+      try {
+        const res = await fetch("/api/assets?feed=marketplace", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          // Map backend format to match the Asset interface
+          const mappedAssets = (data.assets || []).map((a: any) => ({
+            id: a.id,
+            slug: a.id,
+            title: a.title || "Untitled",
+            description: a.description || "",
+            thumbnail: a.coverImageKey 
+              ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`
+              : "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80",
+            gallery: [],
+            creatorId: a.PK,
+            creatorName: a.author?.name || "Studio Admin",
+            creatorAvatar: a.author?.avatar || "https://api.dicebear.com/7.x/shapes/svg?seed=fallback",
+            category: a.category || "stylized",
+            tags: a.tags ? (typeof a.tags === 'string' ? a.tags.split(',') : a.tags) : [],
+            price: a.price || 0,
+            currency: "USD",
+            rating: 5.0,
+            reviewCount: 0,
+            downloadCount: 0,
+            favoriteCount: 0,
+            publishedAt: a.createdAt || new Date().toISOString(),
+            updatedAt: a.updatedAt || new Date().toISOString(),
+            featured: true,
+            trending: true,
+            staffPick: false,
+            newRelease: true,
+            polyCount: 0,
+            triangleCount: 0,
+            hasRig: false,
+            lodLevels: 0,
+            formats: [],
+            software: [],
+            textureResolution: "N/A",
+            hasBlendShapes: false,
+            hasBones: false,
+            licenseType: "personal",
+            accentColor: "#7c3aed"
+          }));
+          setRealAssets(mappedAssets);
+        }
+      } catch (err) {
+        console.error("Failed to fetch assets", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAssets();
+  }, []);
+
+  const allAssets = useMemo(() => [...realAssets], [realAssets]);
+
   const filtered = useMemo(() => {
-    let list = [...assets];
+    let list = [...allAssets];
 
     if (query) {
       const q = query.toLowerCase();
@@ -95,7 +155,7 @@ export default function MarketplacePage() {
             Marketplace
           </h1>
           <p className="text-[var(--text-secondary)] text-sm">
-            {formatNumber(assets.length)} premium character assets
+            {formatNumber(allAssets.length)} premium character assets
           </p>
         </div>
       </div>
