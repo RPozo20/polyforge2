@@ -12,6 +12,8 @@ export const metadata: Metadata = {
     "Discover and buy premium AAA-quality 3D characters for games, VFX, and animation. The world's most advanced digital asset marketplace.",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function HomePage() {
   return (
     <>
