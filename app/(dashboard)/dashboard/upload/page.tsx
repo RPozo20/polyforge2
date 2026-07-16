@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { UploadCloud, FileType, CheckCircle2, X, Loader2 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast, { Toaster } from "react-hot-toast";
 
-export default function UploadAssetPage() {
+function UploadAssetForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get("edit");
@@ -456,5 +456,13 @@ export default function UploadAssetPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function UploadAssetPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen pt-32 flex justify-center text-violet-400">Loading upload form...</div>}>
+      <UploadAssetForm />
+    </Suspense>
   );
 }
