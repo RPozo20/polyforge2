@@ -24,6 +24,17 @@ function UploadAssetForm() {
   const [isFree, setIsFree] = useState(false);
   const [price, setPrice] = useState("");
   
+  // Tech Specs State
+  const [polyCount, setPolyCount] = useState<number | "">("");
+  const [triangleCount, setTriangleCount] = useState<number | "">("");
+  const [lodLevels, setLodLevels] = useState<number | "">("");
+  const [formats, setFormats] = useState("");
+  const [software, setSoftware] = useState("");
+  const [textureResolution, setTextureResolution] = useState("");
+  const [hasBones, setHasBones] = useState(false);
+  const [boneCount, setBoneCount] = useState<number | "">("");
+  const [hasBlendShapes, setHasBlendShapes] = useState(false);
+  
   // Edit mode original states
   const [originalObjectKey, setOriginalObjectKey] = useState<string | undefined>();
   const [originalCoverKey, setOriginalCoverKey] = useState<string | undefined>();
@@ -46,6 +57,15 @@ function UploadAssetForm() {
             setOriginalObjectKey(a.objectKey);
             setOriginalCoverKey(a.coverImageKey);
             setCreatedAt(a.createdAt);
+            setPolyCount(a.polyCount || "");
+            setTriangleCount(a.triangleCount || "");
+            setLodLevels(a.lodLevels || "");
+            setFormats(a.formats ? a.formats.map((f:any)=>f.name).join(", ") : "");
+            setSoftware(a.software ? a.software.join(", ") : "");
+            setTextureResolution(a.textureResolution || "");
+            setHasBones(a.hasBones || false);
+            setBoneCount(a.boneCount || "");
+            setHasBlendShapes(a.hasBlendShapes || false);
             
             if (a.coverImageKey) {
               setCoverPreview(`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`);
@@ -171,6 +191,15 @@ function UploadAssetForm() {
         isFree,
         objectKey: finalObjectKey,
         coverImageKey: finalCoverImageKey,
+        polyCount,
+        triangleCount,
+        lodLevels,
+        formats,
+        software,
+        textureResolution,
+        hasBones,
+        boneCount,
+        hasBlendShapes,
       };
       
       if (editId) {
@@ -332,6 +361,130 @@ function UploadAssetForm() {
                   onChange={(e) => setTags(e.target.value)}
                   disabled={isUploading}
                   placeholder="sci-fi, low-poly, rigged..." 
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                  style={{ textAlign: 'center' }}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Tech Specs */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-10 flex flex-col gap-8">
+            <h3 className="text-2xl font-display font-bold text-white mb-2">Technical Specifications</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label className="block text-center text-sm font-medium text-gray-300 mb-3">Poly Count</label>
+                <input 
+                  type="number" 
+                  value={polyCount}
+                  onChange={(e) => setPolyCount(e.target.value === "" ? "" : Number(e.target.value))}
+                  disabled={isUploading}
+                  placeholder="e.g. 15000" 
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                  style={{ textAlign: 'center' }}
+                />
+              </div>
+              <div>
+                <label className="block text-center text-sm font-medium text-gray-300 mb-3">Triangle Count</label>
+                <input 
+                  type="number" 
+                  value={triangleCount}
+                  onChange={(e) => setTriangleCount(e.target.value === "" ? "" : Number(e.target.value))}
+                  disabled={isUploading}
+                  placeholder="e.g. 30000" 
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                  style={{ textAlign: 'center' }}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div>
+                <label className="block text-center text-sm font-medium text-gray-300 mb-3">LOD Levels</label>
+                <input 
+                  type="number" 
+                  value={lodLevels}
+                  onChange={(e) => setLodLevels(e.target.value === "" ? "" : Number(e.target.value))}
+                  disabled={isUploading}
+                  placeholder="e.g. 3" 
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                  style={{ textAlign: 'center' }}
+                />
+              </div>
+              <div>
+                <label className="block text-center text-sm font-medium text-gray-300 mb-3">Texture Resolution</label>
+                <input 
+                  type="text" 
+                  value={textureResolution}
+                  onChange={(e) => setTextureResolution(e.target.value)}
+                  disabled={isUploading}
+                  placeholder="e.g. 4096x4096" 
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                  style={{ textAlign: 'center' }}
+                />
+              </div>
+              <div className="flex items-center justify-center pt-8">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    checked={hasBlendShapes}
+                    onChange={(e) => setHasBlendShapes(e.target.checked)}
+                    disabled={isUploading}
+                    className="w-5 h-5 rounded border-white/10 bg-[#0a0a1a] text-violet-500 focus:ring-violet-500"
+                  />
+                  <span className="text-sm font-medium text-gray-300">Has Blend Shapes</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="flex flex-col gap-3">
+                <label className="flex items-center gap-3 cursor-pointer self-center">
+                  <input 
+                    type="checkbox" 
+                    checked={hasBones}
+                    onChange={(e) => setHasBones(e.target.checked)}
+                    disabled={isUploading}
+                    className="w-5 h-5 rounded border-white/10 bg-[#0a0a1a] text-violet-500 focus:ring-violet-500"
+                  />
+                  <span className="text-sm font-medium text-gray-300">Has Bones</span>
+                </label>
+                {hasBones && (
+                  <input 
+                    type="number" 
+                    value={boneCount}
+                    onChange={(e) => setBoneCount(e.target.value === "" ? "" : Number(e.target.value))}
+                    disabled={isUploading}
+                    placeholder="Bone Count" 
+                    className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50 mt-2"
+                    style={{ textAlign: 'center' }}
+                  />
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-2">
+              <div>
+                <label className="block text-center text-sm font-medium text-gray-300 mb-3">Included Formats (comma separated)</label>
+                <input 
+                  type="text" 
+                  value={formats}
+                  onChange={(e) => setFormats(e.target.value)}
+                  disabled={isUploading}
+                  placeholder="FBX, OBJ, Blend..." 
+                  className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
+                  style={{ textAlign: 'center' }}
+                />
+              </div>
+              <div>
+                <label className="block text-center text-sm font-medium text-gray-300 mb-3">Compatible Software (comma separated)</label>
+                <input 
+                  type="text" 
+                  value={software}
+                  onChange={(e) => setSoftware(e.target.value)}
+                  disabled={isUploading}
+                  placeholder="Unreal Engine, Unity, Blender..." 
                   className="w-full bg-[#0a0a1a] border border-white/10 rounded-xl px-5 py-4 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all disabled:opacity-50"
                   style={{ textAlign: 'center' }}
                 />

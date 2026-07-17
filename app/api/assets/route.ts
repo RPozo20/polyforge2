@@ -18,7 +18,10 @@ export async function POST(req: NextRequest) {
     // }
 
     const body = await req.json();
-    const { title, description, category, tags, price, isFree, objectKey, coverImageKey } = body;
+    const { 
+      title, description, category, tags, price, isFree, objectKey, coverImageKey,
+      polyCount, triangleCount, lodLevels, formats, software, textureResolution, hasBones, boneCount, hasBlendShapes
+    } = body;
 
     // Basic validation
     if (!title || !objectKey) {
@@ -48,6 +51,15 @@ export async function POST(req: NextRequest) {
       isFree,
       objectKey, // Reference to the R2 file
       coverImageKey, // Reference to the R2 thumbnail
+      polyCount: parseInt(polyCount) || 0,
+      triangleCount: parseInt(triangleCount) || 0,
+      lodLevels: parseInt(lodLevels) || 0,
+      formats: formats ? formats.split(',').map((f: string) => ({ name: f.trim() })) : [],
+      software: software ? software.split(',').map((s: string) => s.trim()) : [],
+      textureResolution: textureResolution || "N/A",
+      hasBones: Boolean(hasBones),
+      boneCount: parseInt(boneCount) || 0,
+      hasBlendShapes: Boolean(hasBlendShapes),
       status: "PUBLISHED",
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -142,7 +154,10 @@ export async function DELETE(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, title, description, category, tags, price, isFree, objectKey, coverImageKey, createdAt } = body;
+    const { 
+      id, title, description, category, tags, price, isFree, objectKey, coverImageKey, createdAt,
+      polyCount, triangleCount, lodLevels, formats, software, textureResolution, hasBones, boneCount, hasBlendShapes
+    } = body;
 
     if (!id || !title) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -167,6 +182,15 @@ export async function PUT(req: NextRequest) {
       tags,
       price: isFree ? 0 : parseFloat(price),
       isFree,
+      polyCount: parseInt(polyCount) || 0,
+      triangleCount: parseInt(triangleCount) || 0,
+      lodLevels: parseInt(lodLevels) || 0,
+      formats: formats ? formats.split(',').map((f: string) => ({ name: f.trim() })) : [],
+      software: software ? software.split(',').map((s: string) => s.trim()) : [],
+      textureResolution: textureResolution || "N/A",
+      hasBones: Boolean(hasBones),
+      boneCount: parseInt(boneCount) || 0,
+      hasBlendShapes: Boolean(hasBlendShapes),
       status: "PUBLISHED",
       createdAt: createdAt || timestamp,
       updatedAt: timestamp,
