@@ -118,8 +118,10 @@ function UploadAssetForm() {
       let finalObjectKey = originalObjectKey;
 
       if (file) {
-        toast.loading("Generating secure upload link...", { id: loadingToast });
-        const presignRes = await fetch("/api/assets/upload-url", {
+        toast.loading("Initializing multipart upload...", { id: loadingToast });
+        
+        // 1. Create Multipart Upload
+        const createRes = await fetch("/api/assets/multipart/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -127,23 +129,88 @@ function UploadAssetForm() {
             contentType: file.type || "application/octet-stream",
           }),
         });
-
-        if (!presignRes.ok) throw new Error("Failed to get presigned URL");
-        const { uploadUrl, objectKey } = await presignRes.json();
         
-        // Always assign the key so the DB record can be created, even if R2 upload fails (e.g. CORS issues)
+        if (!createRes.ok) throw new Error("Failed to initialize upload");
+        const { uploadId, objectKey } = await createRes.json();
         finalObjectKey = objectKey;
 
-        toast.loading("Uploading large asset directly to storage...", { id: loadingToast });
+        // 2. Split file into chunks (5MB minimum for S3, except the last one)
+        const CHUNK_SIZE = 5 * 1024 * 1024;
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+        const parts: { ETag: string; PartNumber: number }[] = [];
+
         try {
-          const uploadRes = await fetch(uploadUrl, {
-            method: "PUT",
-            headers: { "Content-Type": file.type || "application/octet-stream" },
-            body: file,
+          for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunk = file.slice(start, end);
+            const partNumber = i + 1;
+
+            toast.loading(`Uploading part ${partNumber} of ${totalChunks}...`, { id: loadingToast });
+
+            // Get presigned URL for this part
+            const signRes = await fetch("/api/assets/multipart/sign-part", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                objectKey,
+                uploadId,
+                partNumber
+              })
+            });
+            if (!signRes.ok) throw new Error(`Failed to sign part ${partNumber}`);
+            const { signedUrl } = await signRes.json();
+
+            // Upload the chunk
+            const uploadRes = await fetch(signedUrl, {
+              method: "PUT",
+              body: chunk,
+            });
+            if (!uploadRes.ok) throw new Error(`Failed to upload part ${partNumber}`);
+            
+            // Extract ETag from response headers.
+            let etag = uploadRes.headers.get("ETag");
+            if (!etag) {
+                console.warn("ETag missing in response header. Ensure CORS ExposeHeaders includes ETag.");
+                etag = "dummy-etag";
+            } else {
+                // Ensure ETag has double quotes as required by AWS S3 Complete command
+                if (!etag.startsWith('"')) {
+                    etag = `"${etag}"`;
+                }
+            }
+            
+            parts.push({ ETag: etag, PartNumber: partNumber });
+          }
+
+          toast.loading("Assembling uploaded parts...", { id: loadingToast });
+
+          // 3. Complete Multipart Upload
+          const completeRes = await fetch("/api/assets/multipart/complete", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              objectKey,
+              uploadId,
+              parts
+            })
           });
-          if (!uploadRes.ok) console.warn("R2 upload returned non-200 status", uploadRes.status);
-        } catch (r2Error) {
-          console.warn("R2 upload failed:", r2Error);
+          
+          if (!completeRes.ok) {
+            const errData = await completeRes.json().catch(() => ({}));
+            throw new Error(`Failed to complete upload: ${errData.error || completeRes.statusText}`);
+          }
+
+        } catch (uploadError) {
+          console.error("Multipart upload failed:", uploadError);
+          // Optional: Abort upload to clean up incomplete parts
+          await fetch("/api/assets/multipart/abort", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ objectKey, uploadId })
+          }).catch(e => console.warn("Failed to abort upload:", e));
+          
+          throw uploadError; // Rethrow to stop the flow
         }
       }
 

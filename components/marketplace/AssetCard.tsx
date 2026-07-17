@@ -9,6 +9,7 @@ import { formatPrice } from "@/lib/utils";
 import { RatingStars } from "@/components/ui/RatingStars";
 import { Avatar } from "@/components/ui/Avatar";
 import { useCartStore } from "@/lib/store/cart";
+import { motion } from "framer-motion";
 
 interface AssetCardProps {
   asset: Asset;
@@ -43,7 +44,12 @@ export function AssetCard({ asset, variant = "default" }: AssetCardProps) {
     }, [asset.thumbnail]);
 
   return (
-    <article className="group card overflow-hidden h-full flex flex-col relative transition-all hover:border-[rgba(124,58,237,0.35)] hover:-translate-y-0.5 hover:shadow-lg">
+    <motion.article 
+      layout
+      whileHover={{ y: -6, scale: 1.01 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="group card overflow-hidden h-full flex flex-col relative transition-all hover:border-[rgba(124,58,237,0.35)] hover:shadow-[0_16px_40px_rgba(0,0,0,0.4),0_0_20px_rgba(124,58,237,0.25)]"
+    >
       {/* Thumbnail */}
       <div className="relative overflow-hidden bg-[var(--bg-elevated)]">
         <Link href={`/marketplace/${asset.slug}`} className="block">
@@ -185,6 +191,6 @@ export function AssetCard({ asset, variant = "default" }: AssetCardProps) {
           </span>
         </div>
       </div>
-    </article>
+    </motion.article>
   );
 }

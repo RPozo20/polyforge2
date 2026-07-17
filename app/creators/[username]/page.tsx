@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import {
   MapPin, Globe, MessageCircle, ExternalLink, Star, Download,
   Users, ShoppingBag, UserPlus, MessageSquare, CheckCircle
@@ -26,10 +27,28 @@ export default function CreatorProfilePage({ params }: PageProps) {
 
   const creatorAssets = getAssetsByCreator(creator.id);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  };
+
   return (
     <div className="min-h-screen pt-20" style={{ background: "var(--bg-base)" }}>
       {/* Banner */}
-      <div className="relative h-56 md:h-72 overflow-hidden">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="relative h-56 md:h-72 overflow-hidden"
+      >
         <Image
           src={creator.banner}
           alt={`${creator.displayName} banner`}
@@ -39,11 +58,16 @@ export default function CreatorProfilePage({ params }: PageProps) {
           unoptimized
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-base)] via-[var(--bg-base)]/40 to-transparent" />
-      </div>
+      </motion.div>
 
-      <div className="container-xl">
+      <motion.div 
+        className="container-xl"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
         {/* Profile header */}
-        <div className="relative -mt-20 mb-10 flex flex-col md:flex-row items-start md:items-end gap-6">
+        <motion.div variants={itemVariants} className="relative -mt-20 mb-10 flex flex-col md:flex-row items-start md:items-end gap-6">
           <div className="relative flex-shrink-0">
             <Avatar
               src={creator.avatar}
@@ -122,10 +146,10 @@ export default function CreatorProfilePage({ params }: PageProps) {
               <MessageSquare className="w-4 h-4" /> Hire
             </button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Stats bar */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+        <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           {[
             { icon: <ShoppingBag className="w-5 h-5" />, label: "Assets", value: formatNumber(creator.totalAssets) },
             { icon: <Download className="w-5 h-5" />, label: "Total Sales", value: formatNumber(creator.totalSales) },
@@ -149,10 +173,10 @@ export default function CreatorProfilePage({ params }: PageProps) {
               </div>
             </div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Bio */}
-        <div className="card p-6 mb-10">
+        <motion.div variants={itemVariants} className="card p-6 mb-10">
           <h2 className="text-lg font-semibold text-white mb-3" style={{ fontFamily: "var(--font-display)" }}>
             About
           </h2>
@@ -165,10 +189,10 @@ export default function CreatorProfilePage({ params }: PageProps) {
               ))}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Assets */}
-        <div className="mb-16">
+        <motion.div variants={itemVariants} className="mb-16">
           <h2
             className="text-2xl font-bold text-white mb-6"
             style={{ fontFamily: "var(--font-display)" }}
@@ -185,12 +209,14 @@ export default function CreatorProfilePage({ params }: PageProps) {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
               {creatorAssets.map((asset) => (
-                <AssetCard key={asset.id} asset={asset} />
+                <motion.div key={asset.id} variants={itemVariants}>
+                  <AssetCard asset={asset} />
+                </motion.div>
               ))}
             </div>
           )}
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 }

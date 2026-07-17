@@ -2,6 +2,7 @@
 // app/marketplace/page.tsx
 import React, { useState, useMemo } from "react";
 import { SlidersHorizontal, Grid3X3, List, Search, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { categories, licenseTypes, softwareList } from "@/lib/mock/categories";
 import { AssetCard } from "@/components/marketplace/AssetCard";
 import { formatNumber } from "@/lib/utils";
@@ -54,15 +55,16 @@ export default function MarketplacePage() {
             trending: true,
             staffPick: false,
             newRelease: true,
-            polyCount: 0,
-            triangleCount: 0,
-            hasRig: false,
-            lodLevels: 0,
-            formats: [],
-            software: [],
-            textureResolution: "N/A",
-            hasBlendShapes: false,
-            hasBones: false,
+            polyCount: a.polyCount || 0,
+            triangleCount: a.triangleCount || 0,
+            hasRig: a.hasBones || false,
+            lodLevels: a.lodLevels || 0,
+            formats: a.formats || [],
+            software: a.software || [],
+            textureResolution: a.textureResolution || "N/A",
+            hasBlendShapes: a.hasBlendShapes || false,
+            hasBones: a.hasBones || false,
+            boneCount: a.boneCount || 0,
             licenseType: "personal",
             accentColor: "#7c3aed"
           }));
@@ -238,24 +240,21 @@ export default function MarketplacePage() {
 
         <div className="flex gap-10">
           {/* Mobile sidebar backdrop */}
-          {sidebarOpen && (
-            <div
-              className="fixed inset-0 bg-black/60 z-40 lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-          )}
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              />
+            )}
+          </AnimatePresence>
 
-          {/* Sidebar */}
-          <aside
-            className={`
-              flex-shrink-0
-              lg:block lg:w-64
-              ${sidebarOpen
-                ? "fixed right-0 top-0 h-full w-72 z-50 glass-strong border-l border-[var(--border-default)] p-6 overflow-y-auto"
-                : "hidden"
-              }
-            `}
-          >
+          {/* Desktop Sidebar (always visible on lg) */}
+          <aside className="hidden lg:block lg:w-64 flex-shrink-0">
             <div className="lg:sticky lg:top-24 space-y-8">
               {/* Price range */}
               <div>
@@ -365,6 +364,134 @@ export default function MarketplacePage() {
             </div>
           </aside>
 
+          {/* Mobile Sidebar (animated sliding) */}
+          <AnimatePresence>
+            {sidebarOpen && (
+              <motion.aside
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className="fixed right-0 top-0 h-full w-72 z-50 glass-strong border-l border-[var(--border-default)] p-6 overflow-y-auto lg:hidden"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="font-bold text-white tracking-wider uppercase text-sm">Filters</h2>
+                  <button onClick={() => setSidebarOpen(false)} className="p-2 -mr-2 text-[var(--text-muted)] hover:text-white">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                <div className="space-y-8">
+                  {/* Price range */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-3">
+                      Price Range
+                    </h3>
+                    <div className="space-y-2">
+                      <input
+                        type="range"
+                        min={0}
+                        max={500}
+                        value={priceRange[1]}
+                        onChange={(e) => setPriceRange([priceRange[0], +e.target.value])}
+                        className="w-full"
+                        id="price-range-mobile"
+                      />
+                      <div className="flex justify-between text-xs text-[var(--text-muted)]">
+                        <span>${priceRange[0]}</span>
+                        <span>${priceRange[1]}{priceRange[1] >= 500 ? "+" : ""}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <hr className="divider" />
+
+                  {/* Categories */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-3">
+                      Category
+                    </h3>
+                    <div className="space-y-1.5">
+                      {categories.map((cat) => (
+                        <label
+                          key={`mobile-${cat.id}`}
+                          className="flex items-center justify-between gap-2 cursor-pointer group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedCategories.includes(cat.slug)}
+                              onChange={() => toggleFilter(cat.slug, selectedCategories, setSelectedCategories)}
+                              className="flex-shrink-0"
+                            />
+                            <span className="text-sm text-[var(--text-secondary)] group-hover:text-white transition-colors">
+                              {cat.name}
+                            </span>
+                          </div>
+                          <span className="text-xs text-[var(--text-muted)]">
+                            {cat.count.toLocaleString('en-US')}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <hr className="divider" />
+
+                  {/* License */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-3">
+                      License Type
+                    </h3>
+                    <div className="space-y-1.5">
+                      {licenseTypes.map((l) => (
+                        <label key={`mobile-${l.id}`} className="flex items-start gap-2 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={selectedLicenses.includes(l.id)}
+                            onChange={() => toggleFilter(l.id, selectedLicenses, setSelectedLicenses)}
+                            className="mt-0.5 flex-shrink-0"
+                          />
+                          <div>
+                            <span className="text-sm text-[var(--text-secondary)] group-hover:text-white transition-colors block">
+                              {l.name}
+                            </span>
+                            <span className="text-[10px] text-[var(--text-muted)]">
+                              {l.description}
+                            </span>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <hr className="divider" />
+
+                  {/* Software */}
+                  <div>
+                    <h3 className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-widest mb-3">
+                      Software
+                    </h3>
+                    <div className="space-y-1.5">
+                      {softwareList.map((sw) => (
+                        <label key={`mobile-${sw}`} className="flex items-center gap-2 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={selectedSoftware.includes(sw)}
+                            onChange={() => toggleFilter(sw, selectedSoftware, setSelectedSoftware)}
+                          />
+                          <span className="text-sm text-[var(--text-secondary)] group-hover:text-white transition-colors">
+                            {sw}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </motion.aside>
+            )}
+          </AnimatePresence>
+
           {/* Results */}
           <div className="flex-1 min-w-0">
             <div className="text-sm text-[var(--text-muted)] mb-5">
@@ -379,23 +506,30 @@ export default function MarketplacePage() {
                 <button onClick={clearAll} className="btn btn-secondary btn-sm">Clear all filters</button>
               </div>
             ) : (
-              <div
+              <motion.div
+                layout
                 className={
                   view === "grid"
                     ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8"
                     : "flex flex-col gap-6"
                 }
               >
-                {filtered.map((asset, i) => (
-                  <div
-                    key={asset.id}
-                    className="animate-fade-in-up"
-                    style={{ animationDelay: `${Math.min(i * 50, 400)}ms` }}
-                  >
-                    <AssetCard asset={asset} />
-                  </div>
-                ))}
-              </div>
+                <AnimatePresence mode="popLayout">
+                  {filtered.map((asset) => (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.25 }}
+                      key={asset.id}
+                      className="h-full"
+                    >
+                      <AssetCard asset={asset} />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
             )}
           </div>
         </div>

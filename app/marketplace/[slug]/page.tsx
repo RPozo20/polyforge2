@@ -15,6 +15,19 @@ import { RatingStars } from "@/components/ui/RatingStars";
 import { Avatar } from "@/components/ui/Avatar";
 import { AssetCard } from "@/components/marketplace/AssetCard";
 import { useCartStore } from "@/lib/store/cart";
+import dynamic from "next/dynamic";
+
+const ModelViewer = dynamic(
+  () => import("@/components/three/ModelViewer").then((mod) => mod.ModelViewer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center bg-black/20 rounded-2xl">
+        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    ),
+  }
+);
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -27,6 +40,7 @@ export default function AssetDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
 
   const [selectedImage, setSelectedImage] = useState(0);
+  const [show3D, setShow3D] = useState(false);
   const [liked, setLiked] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const { addItem, items } = useCartStore();
@@ -49,6 +63,7 @@ export default function AssetDetailPage({ params }: PageProps) {
               ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`
               : "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80",
             gallery: a.coverImageKey ? [`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`] : ["https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80"],
+            modelUrl: a.objectKey ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.objectKey}` : null,
             creatorId: a.PK,
             creatorName: a.author?.name || "Studio Admin",
             creatorAvatar: a.author?.avatar || "https://api.dicebear.com/7.x/shapes/svg?seed=fallback",
@@ -66,15 +81,16 @@ export default function AssetDetailPage({ params }: PageProps) {
             trending: true,
             staffPick: false,
             newRelease: true,
-            polyCount: 0,
-            triangleCount: 0,
-            hasRig: false,
-            lodLevels: 0,
-            formats: [],
-            software: [],
-            textureResolution: "N/A",
-            hasBlendShapes: false,
-            hasBones: false,
+            polyCount: a.polyCount || 0,
+            triangleCount: a.triangleCount || 0,
+            hasRig: a.hasBones || false,
+            lodLevels: a.lodLevels || 0,
+            formats: a.formats || [],
+            software: a.software || [],
+            textureResolution: a.textureResolution || "N/A",
+            hasBlendShapes: a.hasBlendShapes || false,
+            hasBones: a.hasBones || false,
+            boneCount: a.boneCount || 0,
             licenseType: "personal",
             accentColor: "#7c3aed"
           });
@@ -143,26 +159,49 @@ export default function AssetDetailPage({ params }: PageProps) {
           <div className="lg:col-span-2 space-y-4">
             {/* Main image */}
             <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-[var(--bg-elevated)]">
-              <Image
-                src={asset.gallery[selectedImage] || asset.thumbnail}
-                alt={asset.title}
-                fill
-                className="object-cover"
-                priority
-                unoptimized
-              />
+              {show3D && asset.modelUrl ? (
+                <ModelViewer url={asset.modelUrl} />
+              ) : (
+                <Image
+                  src={asset.gallery[selectedImage] || asset.thumbnail}
+                  alt={asset.title}
+                  fill
+                  className="object-cover"
+                  priority
+                  unoptimized
+                />
+              )}
               {/* Badges overlay */}
-              <div className="absolute top-4 left-4 flex gap-2">
-                {asset.staffPick && <span className="badge badge-gold">⭐ Staff Pick</span>}
-                {asset.newRelease && <span className="badge badge-success">✦ New</span>}
-                {asset.featured && <span className="badge badge-primary">Featured</span>}
-              </div>
-              <div className="absolute bottom-4 right-4">
-                <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/10 text-white text-xs font-semibold">
-                  <Zap className="w-3.5 h-3.5 text-violet-400" />
-                  3D Preview Available
-                </span>
-              </div>
+              {!show3D && (
+                <>
+                  <div className="absolute top-4 left-4 flex gap-2">
+                    {asset.staffPick && <span className="badge badge-gold">⭐ Staff Pick</span>}
+                    {asset.newRelease && <span className="badge badge-success">✦ New</span>}
+                    {asset.featured && <span className="badge badge-primary">Featured</span>}
+                  </div>
+                  {asset.modelUrl && (
+                    <div className="absolute bottom-4 right-4">
+                      <button
+                        onClick={() => setShow3D(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/10 text-white text-xs font-semibold hover:bg-white/10 transition-colors"
+                      >
+                        <Zap className="w-3.5 h-3.5 text-violet-400" />
+                        3D Preview
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+              {show3D && (
+                <div className="absolute bottom-4 right-4 z-10">
+                  <button
+                    onClick={() => setShow3D(false)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/10 text-white text-xs font-semibold hover:bg-white/10 transition-colors cursor-pointer"
+                  >
+                    Exit 3D
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Thumbnails */}
@@ -319,6 +358,14 @@ export default function AssetDetailPage({ params }: PageProps) {
                 <button className="w-full btn btn-gold btn-lg">
                   Buy Now — {formatPrice(asset.price)}
                 </button>
+                
+                {/* Security Feature Test Button */}
+                <a 
+                  href={`/api/assets/download/${asset.id}`} 
+                  className="w-full btn btn-lg mt-2 flex items-center justify-center gap-2 border border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
+                >
+                  <Shield className="w-4 h-4" /> Test Secure Download
+                </a>
               </div>
 
               {/* Actions */}
