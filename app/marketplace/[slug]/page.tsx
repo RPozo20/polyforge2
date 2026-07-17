@@ -341,7 +341,7 @@ export default function AssetDetailPage({ params }: PageProps) {
               </div>
 
               {/* CTAs */}
-              <div className="space-y-3">
+              <div className="flex flex-col gap-4">
                 <button
                   id="detail-add-to-cart"
                   onClick={handleAddToCart}
@@ -362,7 +362,7 @@ export default function AssetDetailPage({ params }: PageProps) {
                 {/* Security Feature Test Button */}
                 <a 
                   href={`/api/assets/download/${asset.id}`} 
-                  className="w-full btn btn-lg mt-2 flex items-center justify-center gap-2 border border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
+                  className="w-full btn btn-lg flex items-center justify-center gap-2 border border-emerald-500/30 text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors"
                 >
                   <Shield className="w-4 h-4" /> Test Secure Download
                 </a>
