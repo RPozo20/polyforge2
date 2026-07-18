@@ -63,7 +63,7 @@ export default function AssetDetailPage({ params }: PageProps) {
               ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`
               : "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80",
             gallery: a.coverImageKey ? [`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`] : ["https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80"],
-            modelUrl: a.objectKey ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.objectKey}` : null,
+            modelUrl: a.objectKey ? `/model-proxy/${a.objectKey}` : null,
             objectKey: a.objectKey || null,
             creatorId: a.PK,
             creatorName: a.author?.name || "Studio Admin",
@@ -121,6 +121,8 @@ export default function AssetDetailPage({ params }: PageProps) {
 
   if (!asset) notFound();
 
+  const isModelPreviewable = asset.modelUrl && /\.(glb|gltf)$/i.test(asset.modelUrl);
+
   const inCart = items.some((i) => i.asset.id === asset.id);
 
   const handleAddToCart = () => {
@@ -167,7 +169,7 @@ export default function AssetDetailPage({ params }: PageProps) {
           <div className="lg:col-span-2 space-y-4">
             {/* Main image */}
             <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-[var(--bg-elevated)]">
-              {show3D && asset.modelUrl ? (
+              {show3D && isModelPreviewable ? (
                 <ModelViewer url={asset.modelUrl} />
               ) : (
                 <Image
@@ -187,7 +189,7 @@ export default function AssetDetailPage({ params }: PageProps) {
                     {asset.newRelease && <span className="badge badge-success">✦ New</span>}
                     {asset.featured && <span className="badge badge-primary">Featured</span>}
                   </div>
-                  {asset.modelUrl && (
+                  {isModelPreviewable && (
                     <div className="absolute bottom-4 right-4">
                       <button
                         onClick={() => setShow3D(true)}

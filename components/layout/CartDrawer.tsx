@@ -118,6 +118,13 @@ export function CartDrawer() {
                   });
                   const data = await res.json();
                   
+                  if (res.status === 401) {
+                    toast.error("Please log in to checkout");
+                    closeCart();
+                    window.location.href = "/login?callbackUrl=" + encodeURIComponent(window.location.pathname);
+                    return;
+                  }
+                  
                   if (!res.ok) {
                     throw new Error(data.error || "Failed to create checkout");
                   }
