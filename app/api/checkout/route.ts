@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     // Create checkout
     const { error, data } = await createCheckout(storeId, variantId, {
       checkoutData: {
+        // @ts-ignore - customPrice is supported by the Lemon Squeezy API but missing from SDK types
         customPrice: totalAmountCents,
         email: session.user.email || "",
         name: session.user.name || "",
