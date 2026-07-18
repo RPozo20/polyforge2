@@ -17,6 +17,7 @@ interface CartStore {
   toggleCart: () => void;
   openCart: () => void;
   closeCart: () => void;
+  clearCart: () => void;
   total: () => number;
   count: () => number;
 }
@@ -40,9 +41,13 @@ export const useCartStore = create<CartStore>()(
       toggleCart: () => set((s) => ({ isOpen: !s.isOpen })),
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
+      clearCart: () => set({ items: [], isOpen: false }),
       total: () => get().items.reduce((sum, i) => sum + i.asset.price * i.quantity, 0),
       count: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
     }),
-    { name: "dacp-cart" }
+    { 
+      name: "dacp-cart",
+      partialize: (state) => ({ items: state.items })
+    }
   )
 );

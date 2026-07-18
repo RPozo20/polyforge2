@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { dynamoDb } from "@/lib/dynamodb";
-import { PutCommand } from "@aws-sdk/lib-dynamodb";
+import { UpdateCommand } from "@aws-sdk/lib-dynamodb";
 
 const TABLE_NAME = process.env.DYNAMODB_ASSETS_TABLE || "PolyforgeAssets";
 
@@ -32,34 +32,34 @@ export async function POST(req: NextRequest) {
       const orderData = payload.data.attributes;
       const customData = payload.meta.custom_data || {};
       const userId = customData.user_id;
-      const assetIds = customData.asset_ids ? customData.asset_ids.split(",") : [];
+      const orderId = customData.order_id; // Our generated order ID
 
-      if (!userId) {
-        console.warn("Order received without user_id in custom data:", payload.data.id);
+      if (!userId || !orderId) {
+        console.warn("Order received without user_id or order_id in custom data:", payload.data.id);
         return NextResponse.json({ received: true });
       }
 
-      // Save order to DynamoDB
-      const orderId = payload.data.id;
-      
-      const command = new PutCommand({
+      // Update the existing pending order in DynamoDB to "paid"
+      const command = new UpdateCommand({
         TableName: TABLE_NAME,
-        Item: {
+        Key: {
           PK: `USER#${userId}`,
           SK: `ORDER#${orderId}`,
-          id: orderId,
-          type: "Order",
-          total: orderData.total,
-          currency: orderData.currency,
-          status: orderData.status,
-          assetIds: assetIds,
-          receiptUrl: orderData.urls?.receipt,
-          createdAt: new Date(orderData.created_at).toISOString(),
+        },
+        UpdateExpression: "SET #st = :status, receiptUrl = :receipt, lemonSqueezyId = :lsId, updatedAt = :updatedAt",
+        ExpressionAttributeNames: {
+          "#st": "status",
+        },
+        ExpressionAttributeValues: {
+          ":status": "paid",
+          ":receipt": orderData.urls?.receipt || null,
+          ":lsId": payload.data.id,
+          ":updatedAt": new Date().toISOString(),
         }
       });
 
       await dynamoDb.send(command);
-      console.log(`Order ${orderId} saved for user ${userId}`);
+      console.log(`Order ${orderId} marked as paid for user ${userId}`);
     }
 
     return NextResponse.json({ received: true });

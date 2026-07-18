@@ -9,11 +9,13 @@ import {
   Wallet, 
   Settings, 
   LogOut,
-  Hexagon
+  Hexagon,
+  Library
 } from "lucide-react";
 
 const navItems = [
   { name: "Overview", href: "/dashboard", icon: LayoutDashboard },
+  { name: "My Library", href: "/dashboard/library", icon: Library },
   { name: "My Assets", href: "/dashboard/assets", icon: FolderOpen },
   { name: "Upload", href: "/dashboard/upload", icon: UploadCloud },
   { name: "Earnings", href: "/dashboard/earnings", icon: Wallet },

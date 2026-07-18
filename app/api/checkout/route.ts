@@ -21,8 +21,6 @@ export async function POST(req: NextRequest) {
     }
 
     const storeId = process.env.LEMONSQUEEZY_STORE_ID;
-    // You need to create a "Pay what you want" or custom price product in Lemon Squeezy
-    // and provide its Variant ID here.
     const variantId = process.env.LEMONSQUEEZY_VARIANT_ID; 
 
     if (!storeId || !variantId) {
@@ -32,6 +30,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const { v4: uuidv4 } = await import("uuid");
+    const { dynamoDb } = await import("@/lib/dynamodb");
+    const { PutCommand } = await import("@aws-sdk/lib-dynamodb");
+    
+    const TABLE_NAME = process.env.DYNAMODB_ASSETS_TABLE || "PolyforgeAssets";
+    const orderId = uuidv4();
+    
+    // Extract lightweight asset metadata for the library
+    const purchasedAssets = items.map((i: any) => ({
+      id: i.asset.id,
+      title: i.asset.title,
+      thumbnail: i.asset.thumbnail,
+      creatorName: i.asset.creatorName,
+      objectKey: i.asset.objectKey || null, // Needed for download
+    }));
+
     // Calculate total in cents (Lemon Squeezy expects cents)
     const totalAmountCents = items.reduce(
       (sum: number, item: any) => sum + Math.round(item.asset.price * 100) * item.quantity,
@@ -40,14 +54,6 @@ export async function POST(req: NextRequest) {
 
     if (totalAmountCents === 0) {
       // Free cart - Bypass Lemon Squeezy and create order directly
-      const { dynamoDb } = await import("@/lib/dynamodb");
-      const { PutCommand } = await import("@aws-sdk/lib-dynamodb");
-      const { v4: uuidv4 } = await import("uuid");
-      
-      const orderId = `free_${uuidv4()}`;
-      const TABLE_NAME = process.env.DYNAMODB_ASSETS_TABLE || "PolyforgeAssets";
-      const assetIdsArray = items.map((i: any) => i.asset.id);
-      
       const command = new PutCommand({
         TableName: TABLE_NAME,
         Item: {
@@ -58,7 +64,7 @@ export async function POST(req: NextRequest) {
           total: 0,
           currency: "USD",
           status: "paid", // Automatically paid since it's free
-          assetIds: assetIdsArray,
+          purchasedAssets,
           createdAt: new Date().toISOString(),
         }
       });
@@ -66,8 +72,26 @@ export async function POST(req: NextRequest) {
       await dynamoDb.send(command);
       
       // Return a URL pointing to the user's library instead of Lemon Squeezy
-      return NextResponse.json({ url: "/dashboard/assets?success=free_order" });
+      return NextResponse.json({ url: "/dashboard/library?success=free_order" });
     }
+
+    // Save PENDING order to DynamoDB
+    const pendingCommand = new PutCommand({
+      TableName: TABLE_NAME,
+      Item: {
+        PK: `USER#${session.user.id}`,
+        SK: `ORDER#${orderId}`,
+        id: orderId,
+        type: "Order",
+        total: totalAmountCents / 100,
+        currency: "USD",
+        status: "pending",
+        purchasedAssets,
+        createdAt: new Date().toISOString(),
+      }
+    });
+    
+    await dynamoDb.send(pendingCommand);
 
     // Extract asset IDs to store in custom data
     const assetIds = items.map((i: any) => i.asset.id).join(",");
@@ -81,14 +105,14 @@ export async function POST(req: NextRequest) {
         name: session.user.name || "",
         custom: {
           user_id: session.user.id,
-          asset_ids: assetIds,
+          order_id: orderId,
         },
       },
       productOptions: {
         name: `Polyforge Purchase (${items.length} item${items.length > 1 ? "s" : ""})`,
         description: items.map((i: any) => i.asset.title).join(", "),
-        receiptButtonText: "Return to Polyforge",
-        receiptLinkUrl: `${process.env.NEXTAUTH_URL}/dashboard/assets`,
+        receiptButtonText: "Return to Polyforge Library",
+        receiptLinkUrl: `${process.env.NEXTAUTH_URL}/dashboard/library?success=lemon_squeezy`,
       },
     });
 
