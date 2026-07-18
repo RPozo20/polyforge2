@@ -15,6 +15,7 @@
     "@aws-sdk/lib-dynamodb": "^3.1088.0",
     "@aws-sdk/s3-request-presigner": "^3.1088.0",
     "@hookform/resolvers": "^5.4.0",
+    "@lemonsqueezy/lemonsqueezy.js": "^4.0.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.1",
     "clsx": "^2.1.1",

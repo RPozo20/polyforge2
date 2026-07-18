@@ -1,15 +1,17 @@
 "use client";
 // components/layout/CartDrawer.tsx
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { X, ShoppingCart, Trash2, ArrowRight } from "lucide-react";
+import { X, ShoppingCart, Trash2, ArrowRight, Loader2 } from "lucide-react";
 import { useCartStore } from "@/lib/store/cart";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import toast from "react-hot-toast";
 
 export function CartDrawer() {
   const { items, isOpen, closeCart, removeItem, total } = useCartStore();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const cartTotal = total();
 
   if (!isOpen) return null;
@@ -106,9 +108,33 @@ export function CartDrawer() {
               variant="primary"
               size="lg"
               className="w-full"
-              iconRight={<ArrowRight className="w-4 h-4" />}
+              onClick={async () => {
+                setIsCheckingOut(true);
+                try {
+                  const res = await fetch("/api/checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ items }),
+                  });
+                  const data = await res.json();
+                  
+                  if (!res.ok) {
+                    throw new Error(data.error || "Failed to create checkout");
+                  }
+                  if (data.url) {
+                    window.location.href = data.url;
+                  }
+                } catch (error: any) {
+                  console.error(error);
+                  toast.error(error.message);
+                } finally {
+                  setIsCheckingOut(false);
+                }
+              }}
+              disabled={isCheckingOut}
+              iconRight={isCheckingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
             >
-              Checkout
+              {isCheckingOut ? "Processing..." : "Checkout"}
             </Button>
             <button
               onClick={closeCart}
