@@ -39,7 +39,34 @@ export async function POST(req: NextRequest) {
     );
 
     if (totalAmountCents === 0) {
-      return NextResponse.json({ error: "Total amount must be greater than 0" }, { status: 400 });
+      // Free cart - Bypass Lemon Squeezy and create order directly
+      const { dynamoDb } = await import("@/lib/dynamodb");
+      const { PutCommand } = await import("@aws-sdk/lib-dynamodb");
+      const { v4: uuidv4 } = await import("uuid");
+      
+      const orderId = `free_${uuidv4()}`;
+      const TABLE_NAME = process.env.DYNAMODB_ASSETS_TABLE || "PolyforgeAssets";
+      const assetIdsArray = items.map((i: any) => i.asset.id);
+      
+      const command = new PutCommand({
+        TableName: TABLE_NAME,
+        Item: {
+          PK: `USER#${session.user.id}`,
+          SK: `ORDER#${orderId}`,
+          id: orderId,
+          type: "Order",
+          total: 0,
+          currency: "USD",
+          status: "paid", // Automatically paid since it's free
+          assetIds: assetIdsArray,
+          createdAt: new Date().toISOString(),
+        }
+      });
+      
+      await dynamoDb.send(command);
+      
+      // Return a URL pointing to the user's library instead of Lemon Squeezy
+      return NextResponse.json({ url: "/dashboard/assets?success=free_order" });
     }
 
     // Extract asset IDs to store in custom data
