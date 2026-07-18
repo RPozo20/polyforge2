@@ -43,7 +43,7 @@ export default function AssetDetailPage({ params }: PageProps) {
   const [show3D, setShow3D] = useState(false);
   const [liked, setLiked] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
-  const { addItem, items } = useCartStore();
+  const { addItem, items, openCart } = useCartStore();
 
   React.useEffect(() => {
     async function fetchAsset() {
@@ -127,6 +127,13 @@ export default function AssetDetailPage({ params }: PageProps) {
     addItem(asset);
     setJustAdded(true);
     setTimeout(() => setJustAdded(false), 2500);
+  };
+
+  const handleBuyNow = () => {
+    if (!inCart) {
+      addItem(asset);
+    }
+    openCart();
   };
 
   const related = mockAssets
@@ -355,7 +362,10 @@ export default function AssetDetailPage({ params }: PageProps) {
                     <><ShoppingCart className="w-5 h-5" /> Add to Cart</>
                   )}
                 </button>
-                <button className="w-full btn btn-gold btn-lg">
+                <button 
+                  onClick={handleBuyNow}
+                  className="w-full btn btn-gold btn-lg"
+                >
                   Buy Now — {formatPrice(asset.price)}
                 </button>
                 
