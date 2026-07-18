@@ -3,12 +3,12 @@
 import { Download, ExternalLink, Search } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCartStore } from "@/lib/store/cart";
 import { toast } from "react-hot-toast";
 
-export default function LibraryPage() {
+function LibraryContent() {
   const [assets, setAssets] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -139,5 +139,17 @@ export default function LibraryPage() {
         })}
       </div>
     </div>
+  );
+}
+
+export default function LibraryPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <LibraryContent />
+    </Suspense>
   );
 }
