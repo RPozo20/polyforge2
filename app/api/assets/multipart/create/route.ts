@@ -21,6 +21,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ uploadId: result.UploadId, objectKey });
   } catch (error) {
     console.error("Error creating multipart upload:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Internal Server Error" }, { status: 500 });
   }
 }

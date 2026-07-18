@@ -60,7 +60,7 @@ export function AssetCard({ asset, variant = "default" }: AssetCardProps) {
               src={imgError ? "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80" : imgSrc}
               alt={asset.title}
               fill
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className="object-contain transition-transform duration-500 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               unoptimized
               onError={() => setImgError(true)}

@@ -130,7 +130,10 @@ function UploadAssetForm() {
           }),
         });
         
-        if (!createRes.ok) throw new Error("Failed to initialize upload");
+        if (!createRes.ok) {
+          const errData = await createRes.json().catch(() => ({}));
+          throw new Error(`Failed to initialize upload: ${errData.error || createRes.statusText}`);
+        }
         const { uploadId, objectKey } = await createRes.json();
         finalObjectKey = objectKey;
 
@@ -630,7 +633,7 @@ function UploadAssetForm() {
 
           <div className="bg-white/5 border border-white/10 rounded-2xl p-10 flex flex-col gap-6">
             <h3 className="text-2xl font-display font-bold text-white mb-2">Thumbnails</h3>
-            <div className="aspect-video bg-[#0a0a1a] border border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:border-violet-500/50 hover:bg-white/5 transition-all relative overflow-hidden group">
+            <div className={`${coverPreview ? '' : 'aspect-video'} bg-[#0a0a1a] border border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:border-violet-500/50 hover:bg-white/5 transition-all relative overflow-hidden group`}>
               <input 
                 type="file" 
                 accept="image/*"
@@ -645,7 +648,7 @@ function UploadAssetForm() {
                 disabled={isUploading}
               />
               {coverPreview ? (
-                <img src={coverPreview} alt="Cover Preview" className="w-full h-full object-cover" />
+                <img src={coverPreview} alt="Cover Preview" className="w-full h-auto max-h-[500px] object-contain" />
               ) : (
                 <div className="text-center z-0">
                   <FileType className="w-6 h-6 text-gray-500 mx-auto mb-2" />
