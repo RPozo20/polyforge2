@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     const paidOrders = orders.filter((o) => o.status === "paid");
 
     // Flatten all purchased assets from the paid orders into a single list
-    const purchasedAssets = [];
+    const purchasedAssets: any[] = [];
     for (const order of paidOrders) {
       if (order.purchasedAssets && Array.isArray(order.purchasedAssets)) {
         for (const asset of order.purchasedAssets) {
