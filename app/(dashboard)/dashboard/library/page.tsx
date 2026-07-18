@@ -89,10 +89,8 @@ function LibraryContent() {
         )}
 
         {filteredAssets.map((asset, index) => {
-          // Construct the download URL using the R2 Dev URL
-          const downloadUrl = asset.objectKey 
-            ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${asset.objectKey}`
-            : "#";
+          // Use the secure download API endpoint which generates a presigned URL
+          const downloadUrl = `/api/assets/download/${asset.id}`;
 
           return (
             <div key={`${asset.id}-${index}`} className="group bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-violet-500/50 transition-colors flex flex-col">
