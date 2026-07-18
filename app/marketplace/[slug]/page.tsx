@@ -53,6 +53,8 @@ export default function AssetDetailPage({ params }: PageProps) {
           const data = await res.json();
           const a = data.asset;
           
+          const devUrl = process.env.NEXT_PUBLIC_R2_DEV_URL || "https://pub-9dec10d8fcd64289900dd62f86e02a6b.r2.dev";
+          
           // Map DB format to Asset interface
           setAsset({
             id: a.id,
@@ -60,10 +62,10 @@ export default function AssetDetailPage({ params }: PageProps) {
             title: a.title || "Untitled",
             description: a.description || "",
             thumbnail: a.coverImageKey 
-              ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`
+              ? `${devUrl}/${a.coverImageKey}`
               : "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80",
-            gallery: a.coverImageKey ? [`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`] : ["https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80"],
-            modelUrl: a.objectKey ? `/model-proxy/${a.objectKey}` : null,
+            gallery: a.coverImageKey ? [`${devUrl}/${a.coverImageKey}`] : ["https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80"],
+            modelUrl: a.objectKey ? `/api/assets/presign?key=${encodeURIComponent(a.objectKey)}` : null,
             objectKey: a.objectKey || null,
             creatorId: a.PK,
             creatorName: a.author?.name || "Studio Admin",
