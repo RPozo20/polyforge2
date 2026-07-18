@@ -64,6 +64,7 @@ export default function AssetDetailPage({ params }: PageProps) {
               : "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80",
             gallery: a.coverImageKey ? [`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`] : ["https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80"],
             modelUrl: a.objectKey ? `${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.objectKey}` : null,
+            objectKey: a.objectKey || null,
             creatorId: a.PK,
             creatorName: a.author?.name || "Studio Admin",
             creatorAvatar: a.author?.avatar || "https://api.dicebear.com/7.x/shapes/svg?seed=fallback",
