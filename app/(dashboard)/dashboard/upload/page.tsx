@@ -15,6 +15,9 @@ function UploadAssetForm() {
   const [isUploading, setIsUploading] = useState(false);
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  
+  const [wireframeImage, setWireframeImage] = useState<File | null>(null);
+  const [wireframePreview, setWireframePreview] = useState<string | null>(null);
 
   // Form State
   const [title, setTitle] = useState("");
@@ -38,6 +41,7 @@ function UploadAssetForm() {
   // Edit mode original states
   const [originalObjectKey, setOriginalObjectKey] = useState<string | undefined>();
   const [originalCoverKey, setOriginalCoverKey] = useState<string | undefined>();
+  const [originalWireframeKey, setOriginalWireframeKey] = useState<string | undefined>();
   const [createdAt, setCreatedAt] = useState<string | undefined>();
 
   useEffect(() => {
@@ -56,6 +60,7 @@ function UploadAssetForm() {
             setPrice(a.price ? a.price.toString() : "");
             setOriginalObjectKey(a.objectKey);
             setOriginalCoverKey(a.coverImageKey);
+            setOriginalWireframeKey(a.wireframeImageKey);
             setCreatedAt(a.createdAt);
             setPolyCount(a.polyCount || "");
             setTriangleCount(a.triangleCount || "");
@@ -69,6 +74,9 @@ function UploadAssetForm() {
             
             if (a.coverImageKey) {
               setCoverPreview(`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.coverImageKey}`);
+            }
+            if (a.wireframeImageKey) {
+              setWireframePreview(`${process.env.NEXT_PUBLIC_R2_DEV_URL}/${a.wireframeImageKey}`);
             }
           }
         } catch (e) {
@@ -218,6 +226,7 @@ function UploadAssetForm() {
       }
 
       let finalCoverImageKey = originalCoverKey;
+      let finalWireframeImageKey = originalWireframeKey;
 
       if (coverImage) {
         toast.loading("Uploading cover image...", { id: loadingToast });
@@ -232,8 +241,6 @@ function UploadAssetForm() {
 
         if (!coverPresignRes.ok) throw new Error("Failed to get presigned URL for cover image");
         const { uploadUrl: coverUploadUrl, objectKey: coverObjectKey } = await coverPresignRes.json();
-
-        // Always assign the key
         finalCoverImageKey = coverObjectKey;
 
         try {
@@ -245,6 +252,33 @@ function UploadAssetForm() {
           if (!coverUploadRes.ok) console.warn("Cover R2 upload returned non-200 status", coverUploadRes.status);
         } catch (error) {
           console.warn("Cover upload failed", error);
+        }
+      }
+
+      if (wireframeImage) {
+        toast.loading("Uploading wireframe image...", { id: loadingToast });
+        const wireframePresignRes = await fetch("/api/assets/upload-url", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            filename: wireframeImage.name,
+            contentType: wireframeImage.type || "image/jpeg",
+          }),
+        });
+
+        if (!wireframePresignRes.ok) throw new Error("Failed to get presigned URL for wireframe image");
+        const { uploadUrl: wireframeUploadUrl, objectKey: wireframeObjectKey } = await wireframePresignRes.json();
+        finalWireframeImageKey = wireframeObjectKey;
+
+        try {
+          const wireframeUploadRes = await fetch(wireframeUploadUrl, {
+            method: "PUT",
+            headers: { "Content-Type": wireframeImage.type || "image/jpeg" },
+            body: wireframeImage,
+          });
+          if (!wireframeUploadRes.ok) console.warn("Wireframe R2 upload returned non-200 status", wireframeUploadRes.status);
+        } catch (error) {
+          console.warn("Wireframe upload failed", error);
         }
       }
 
@@ -261,6 +295,7 @@ function UploadAssetForm() {
         isFree,
         objectKey: finalObjectKey,
         coverImageKey: finalCoverImageKey,
+        wireframeImageKey: finalWireframeImageKey,
         polyCount,
         triangleCount,
         lodLevels,
@@ -632,43 +667,88 @@ function UploadAssetForm() {
           </div>
 
           <div className="bg-white/5 border border-white/10 rounded-2xl p-10 flex flex-col gap-6">
-            <h3 className="text-2xl font-display font-bold text-white mb-2">Thumbnails</h3>
-            <div className={`${coverPreview ? '' : 'aspect-video'} bg-[#0a0a1a] border border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:border-violet-500/50 hover:bg-white/5 transition-all relative overflow-hidden group`}>
-              <input 
-                type="file" 
-                accept="image/*"
-                className="absolute inset-0 opacity-0 cursor-pointer z-10"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files.length > 0) {
-                    const img = e.target.files[0];
-                    setCoverImage(img);
-                    setCoverPreview(URL.createObjectURL(img));
-                  }
-                }}
-                disabled={isUploading}
-              />
-              {coverPreview ? (
-                <img src={coverPreview} alt="Cover Preview" className="w-full h-auto max-h-[500px] object-contain" />
-              ) : (
-                <div className="text-center z-0">
-                  <FileType className="w-6 h-6 text-gray-500 mx-auto mb-2" />
-                  <p className="text-sm font-medium text-gray-400">Add cover image</p>
-                </div>
+            <h3 className="text-2xl font-display font-bold text-white mb-2">Images & Previews</h3>
+            
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium text-gray-300">Cover Image (Required)</label>
+              <div className={`${coverPreview ? '' : 'aspect-video'} bg-[#0a0a1a] border border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:border-violet-500/50 hover:bg-white/5 transition-all relative overflow-hidden group`}>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      const img = e.target.files[0];
+                      setCoverImage(img);
+                      setCoverPreview(URL.createObjectURL(img));
+                    }
+                  }}
+                  disabled={isUploading}
+                />
+                {coverPreview ? (
+                  <img src={coverPreview} alt="Cover Preview" className="w-full h-auto max-h-[300px] object-contain" />
+                ) : (
+                  <div className="text-center z-0 py-8">
+                    <FileType className="w-6 h-6 text-gray-500 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-400">Add cover image</p>
+                  </div>
+                )}
+              </div>
+              {coverPreview && (
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setCoverImage(null);
+                    setCoverPreview(null);
+                  }}
+                  disabled={isUploading}
+                  className="mt-1 text-sm text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors self-start"
+                >
+                  <X className="w-4 h-4" /> Remove cover
+                </button>
               )}
             </div>
-            {coverPreview && (
-              <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  setCoverImage(null);
-                  setCoverPreview(null);
-                }}
-                disabled={isUploading}
-                className="mt-3 text-sm text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors"
-              >
-                <X className="w-4 h-4" /> Remove cover
-              </button>
-            )}
+
+            <div className="flex flex-col gap-2 mt-4">
+              <label className="text-sm font-medium text-gray-300">Wireframe / Clay Render (Optional)</label>
+              <p className="text-xs text-gray-400 mb-2">Upload a wireframe or clay render matching the exact same angle as the cover image to enable the interactive slider.</p>
+              <div className={`${wireframePreview ? '' : 'aspect-video'} bg-[#0a0a1a] border border-dashed border-white/10 rounded-xl flex items-center justify-center cursor-pointer hover:border-violet-500/50 hover:bg-white/5 transition-all relative overflow-hidden group`}>
+                <input 
+                  type="file" 
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files.length > 0) {
+                      const img = e.target.files[0];
+                      setWireframeImage(img);
+                      setWireframePreview(URL.createObjectURL(img));
+                    }
+                  }}
+                  disabled={isUploading}
+                />
+                {wireframePreview ? (
+                  <img src={wireframePreview} alt="Wireframe Preview" className="w-full h-auto max-h-[300px] object-contain" />
+                ) : (
+                  <div className="text-center z-0 py-8">
+                    <FileType className="w-6 h-6 text-gray-500 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-gray-400">Add wireframe image</p>
+                  </div>
+                )}
+              </div>
+              {wireframePreview && (
+                <button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setWireframeImage(null);
+                    setWireframePreview(null);
+                  }}
+                  disabled={isUploading}
+                  className="mt-1 text-sm text-rose-400 hover:text-rose-300 flex items-center gap-1 transition-colors self-start"
+                >
+                  <X className="w-4 h-4" /> Remove wireframe
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="pt-4 flex gap-3 sm:hidden">

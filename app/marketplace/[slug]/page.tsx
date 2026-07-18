@@ -15,19 +15,7 @@ import { RatingStars } from "@/components/ui/RatingStars";
 import { Avatar } from "@/components/ui/Avatar";
 import { AssetCard } from "@/components/marketplace/AssetCard";
 import { useCartStore } from "@/lib/store/cart";
-import dynamic from "next/dynamic";
-
-const ModelViewer = dynamic(
-  () => import("@/components/three/ModelViewer").then((mod) => mod.ModelViewer),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-full flex items-center justify-center bg-black/20 rounded-2xl">
-        <div className="w-8 h-8 border-4 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    ),
-  }
-);
+import { ImageCompareSlider } from "@/components/ui/ImageCompareSlider";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -40,7 +28,7 @@ export default function AssetDetailPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
 
   const [selectedImage, setSelectedImage] = useState(0);
-  const [show3D, setShow3D] = useState(false);
+  const [showWireframe, setShowWireframe] = useState(false);
   const [liked, setLiked] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
   const { addItem, items, openCart } = useCartStore();
@@ -65,6 +53,7 @@ export default function AssetDetailPage({ params }: PageProps) {
               ? `${devUrl}/${a.coverImageKey}`
               : "https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80",
             gallery: a.coverImageKey ? [`${devUrl}/${a.coverImageKey}`] : ["https://images.unsplash.com/photo-1614729939124-032d1e6c9945?w=600&q=80"],
+            wireframeImage: a.wireframeImageKey ? `${devUrl}/${a.wireframeImageKey}` : null,
             modelUrl: a.objectKey ? `/api/assets/presign?key=${encodeURIComponent(a.objectKey)}` : null,
             objectKey: a.objectKey || null,
             creatorId: a.PK,
@@ -123,8 +112,6 @@ export default function AssetDetailPage({ params }: PageProps) {
 
   if (!asset) notFound();
 
-  const isModelPreviewable = asset.modelUrl && /\.(glb|gltf)$/i.test(asset.modelUrl);
-
   const inCart = items.some((i) => i.asset.id === asset.id);
 
   const handleAddToCart = () => {
@@ -171,8 +158,11 @@ export default function AssetDetailPage({ params }: PageProps) {
           <div className="lg:col-span-2 space-y-4">
             {/* Main image */}
             <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-[var(--bg-elevated)]">
-              {show3D && isModelPreviewable ? (
-                <ModelViewer url={asset.modelUrl} />
+              {showWireframe && asset.wireframeImage ? (
+                <ImageCompareSlider 
+                  beforeImage={asset.wireframeImage} 
+                  afterImage={asset.gallery[selectedImage] || asset.thumbnail} 
+                />
               ) : (
                 <Image
                   src={asset.gallery[selectedImage] || asset.thumbnail}
@@ -184,33 +174,33 @@ export default function AssetDetailPage({ params }: PageProps) {
                 />
               )}
               {/* Badges overlay */}
-              {!show3D && (
+              {!showWireframe && (
                 <>
                   <div className="absolute top-4 left-4 flex gap-2">
                     {asset.staffPick && <span className="badge badge-gold">⭐ Staff Pick</span>}
                     {asset.newRelease && <span className="badge badge-success">✦ New</span>}
                     {asset.featured && <span className="badge badge-primary">Featured</span>}
                   </div>
-                  {isModelPreviewable && (
+                  {asset.wireframeImage && (
                     <div className="absolute bottom-4 right-4">
                       <button
-                        onClick={() => setShow3D(true)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/10 text-white text-xs font-semibold hover:bg-white/10 transition-colors"
+                        onClick={() => setShowWireframe(true)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/10 text-white text-xs font-semibold hover:bg-white/10 transition-colors cursor-pointer"
                       >
-                        <Zap className="w-3.5 h-3.5 text-violet-400" />
-                        3D Preview
+                        <Layers className="w-3.5 h-3.5 text-violet-400" />
+                        Inspect Topology
                       </button>
                     </div>
                   )}
                 </>
               )}
-              {show3D && (
-                <div className="absolute bottom-4 right-4 z-10">
+              {showWireframe && (
+                <div className="absolute top-4 right-4 z-30">
                   <button
-                    onClick={() => setShow3D(false)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg glass border border-white/10 text-white text-xs font-semibold hover:bg-white/10 transition-colors cursor-pointer"
+                    onClick={() => setShowWireframe(false)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/10 text-white text-xs font-semibold hover:bg-white/20 transition-colors cursor-pointer"
                   >
-                    Exit 3D
+                    Close Inspection
                   </button>
                 </div>
               )}

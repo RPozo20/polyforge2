@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const { 
-      title, description, category, tags, price, isFree, objectKey, coverImageKey,
+      title, description, category, tags, price, isFree, objectKey, coverImageKey, wireframeImageKey,
       polyCount, triangleCount, lodLevels, formats, software, textureResolution, hasBones, boneCount, hasBlendShapes
     } = body;
 
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       isFree,
       objectKey, // Reference to the R2 file
       coverImageKey, // Reference to the R2 thumbnail
+      wireframeImageKey, // Reference to the R2 wireframe image (optional)
       polyCount: parseInt(polyCount) || 0,
       triangleCount: parseInt(triangleCount) || 0,
       lodLevels: parseInt(lodLevels) || 0,
@@ -155,7 +156,7 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
     const { 
-      id, title, description, category, tags, price, isFree, objectKey, coverImageKey, createdAt,
+      id, title, description, category, tags, price, isFree, objectKey, coverImageKey, wireframeImageKey, createdAt,
       polyCount, triangleCount, lodLevels, formats, software, textureResolution, hasBones, boneCount, hasBlendShapes
     } = body;
 
@@ -198,6 +199,7 @@ export async function PUT(req: NextRequest) {
 
     if (objectKey) assetItem.objectKey = objectKey;
     if (coverImageKey) assetItem.coverImageKey = coverImageKey;
+    if (wireframeImageKey !== undefined) assetItem.wireframeImageKey = wireframeImageKey;
 
     const { PutCommand } = await import("@aws-sdk/lib-dynamodb");
     await dynamoDb.send(new PutCommand({
