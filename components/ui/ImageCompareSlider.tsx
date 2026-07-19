@@ -84,7 +84,7 @@ export function ImageCompareSlider({
           src={afterImage}
           alt={afterLabel}
           fill
-          className="object-cover"
+          className="object-contain"
           unoptimized
           draggable={false}
         />
@@ -103,7 +103,7 @@ export function ImageCompareSlider({
           src={beforeImage}
           alt={beforeLabel}
           fill
-          className="object-cover"
+          className="object-contain"
           unoptimized
           draggable={false}
         />

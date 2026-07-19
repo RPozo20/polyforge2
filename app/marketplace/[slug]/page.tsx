@@ -168,7 +168,7 @@ export default function AssetDetailPage({ params }: PageProps) {
                   src={asset.gallery[selectedImage] || asset.thumbnail}
                   alt={asset.title}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                   priority
                   unoptimized
                 />
